@@ -79,22 +79,4 @@ export function parseTime(timeStr: string): number {
 }
 
 // Initial Mock Data to match screenshot
-export const INITIAL_HUNTS: HuntRecord[] = [
-  // Bow Data
-  { id: "1", monsterId: "nergigante", weaponId: "bow", timeSeconds: 528, isPb: true, date: new Date() }, // 8:48 Gold + PB
-  { id: "2", monsterId: "kulve", weaponId: "bow", timeSeconds: 984, isPb: true, date: new Date() }, // 16:24 Bronze + PB (Wait, 16:24 is sub 20, so Bronze. But PB gives +1. Screenshot shows bronze medal next to it)
-  // Let's adjust logic based on screenshot observation:
-  // "pb 16:24 Bronze" -> Bronze is sub 20.
-  // "pb 14:24 Silver Star" -> Silver is sub 15. 14:24 is sub 15. Correct.
-  // "pb 17:30 Bronze" -> Sub 20. Correct.
-  
-  // Adding more to populate
-  { id: "3", monsterId: "alatreon", weaponId: "bow", timeSeconds: 864, isPb: true, date: new Date() }, // 14:24
-  { id: "4", monsterId: "velkhana", weaponId: "bow", timeSeconds: 913, isPb: true, date: new Date() }, // 15:13
-  { id: "5", monsterId: "fatalis", weaponId: "bow", timeSeconds: 1050, isPb: true, date: new Date() }, // 17:30
-
-  // HH Data
-  { id: "6", monsterId: "nergigante", weaponId: "hh", timeSeconds: 533, isPb: true, date: new Date() }, // 8:53
-  { id: "7", monsterId: "kulve", weaponId: "hh", timeSeconds: 963, isPb: true, date: new Date() }, // 16:03
-  { id: "8", monsterId: "alatreon", weaponId: "hh", timeSeconds: 1354, isPb: true, date: new Date() }, // 22:34 (Skull)
-];
+export const INITIAL_HUNTS: HuntRecord[] = [];

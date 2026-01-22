@@ -74,7 +74,28 @@ export default function Dashboard() {
 
     const sortedWeapons = Object.entries(weaponStats)
       .map(([id, stat]) => ({ id, ...stat }))
-      .sort((a, b) => b.points - a.points);
+      // Default Sort: Active weapons by points (desc), then Inactive weapons by base game order
+      .sort((a, b) => {
+        // First check: Are they active?
+        const aActive = a.hunts > 0;
+        const bActive = b.hunts > 0;
+
+        // If both have hunts, sort by points (high to low)
+        if (aActive && bActive) {
+           return b.points - a.points;
+        }
+
+        // If one is active and the other is not, active comes first
+        // Commented out to keep fixed order when requested
+        // if (aActive && !bActive) return -1;
+        // if (!aActive && bActive) return 1;
+
+        // If neither have hunts (or we want to preserve base order for inactive ones)
+        // Sort by their index in the WEAPONS array (Base Game Order)
+        const aIndex = WEAPONS.findIndex(w => w.id === a.id);
+        const bIndex = WEAPONS.findIndex(w => w.id === b.id);
+        return aIndex - bIndex;
+      });
 
     // Get Best and Worst (only considering weapons with > 0 hunts)
     const activeWeapons = sortedWeapons.filter(w => w.hunts > 0);
