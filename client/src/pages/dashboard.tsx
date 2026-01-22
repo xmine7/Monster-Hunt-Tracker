@@ -392,7 +392,7 @@ export default function Dashboard() {
                         {weaponName}
                         {weapon.hunts > 0 && (
                           <Badge variant="outline" className="ml-2 bg-white/5 border-white/10 text-xs">
-                            {weapon.hunts} Clears <span className="text-muted-foreground ml-1">({weapon.attempts} Attempts)</span>
+                            {weapon.attempts} Hunts
                           </Badge>
                         )}
                       </CardTitle>
