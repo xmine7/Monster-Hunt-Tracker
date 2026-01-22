@@ -651,7 +651,17 @@ export default function Dashboard() {
                   <div className="space-y-4 py-4">
                     {/* Monster Selection */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Monsters</Label>
+                      <div className="flex justify-between items-center">
+                        <Label className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Monsters</Label>
+                        <button
+                          onClick={() => setSelectedRandomMonsters(
+                            selectedRandomMonsters.length === MONSTERS.length ? [] : MONSTERS.map(m => m.id)
+                          )}
+                          className="text-xs text-purple-400 hover:text-purple-300"
+                        >
+                          {selectedRandomMonsters.length === MONSTERS.length ? "Deselect All" : "Select All"}
+                        </button>
+                      </div>
                       <div className="grid grid-cols-1 gap-2">
                         {MONSTERS.map(m => (
                           <button
@@ -673,7 +683,17 @@ export default function Dashboard() {
 
                     {/* Weapon Selection */}
                     <div className="space-y-2">
-                      <Label className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Weapons</Label>
+                      <div className="flex justify-between items-center">
+                        <Label className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Weapons</Label>
+                        <button
+                          onClick={() => setSelectedRandomWeapons(
+                            selectedRandomWeapons.length === WEAPONS.length ? [] : WEAPONS.map(w => w.id)
+                          )}
+                          className="text-xs text-purple-400 hover:text-purple-300"
+                        >
+                          {selectedRandomWeapons.length === WEAPONS.length ? "Deselect All" : "Select All"}
+                        </button>
+                      </div>
                       <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
                         {WEAPONS.map(w => (
                           <button
