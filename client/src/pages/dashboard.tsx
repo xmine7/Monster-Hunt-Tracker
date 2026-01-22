@@ -146,23 +146,32 @@ export default function Dashboard() {
     const time = parseTime(timeInput);
     if (!time) return;
 
-    // Check if it's a PB for this monster/weapon combo
-    const existingBest = hunts
-      .filter(h => h.monsterId === selectedMonster && h.weaponId === selectedWeapon)
-      .reduce((min, h) => Math.min(min, h.timeSeconds), Infinity);
-
-    const isPb = time < existingBest;
+    // Check if a record already exists for this monster/weapon
+    const existingHuntIndex = hunts.findIndex(
+      h => h.monsterId === selectedMonster && h.weaponId === selectedWeapon
+    );
 
     const newHunt: HuntRecord = {
-      id: Math.random().toString(),
+      id: existingHuntIndex !== -1 ? hunts[existingHuntIndex].id : Math.random().toString(),
       monsterId: selectedMonster,
       weaponId: selectedWeapon,
       timeSeconds: time,
-      isPb,
+      isPb: true, // If it's the only entry, it's the PB
       date: new Date()
     };
 
-    setHunts(prev => [newHunt, ...prev]);
+    setHunts(prev => {
+      const newHunts = [...prev];
+      if (existingHuntIndex !== -1) {
+        // Update existing
+        newHunts[existingHuntIndex] = newHunt;
+      } else {
+        // Add new
+        newHunts.unshift(newHunt);
+      }
+      return newHunts;
+    });
+
     setIsAddOpen(false);
     setTimeInput("");
   };
