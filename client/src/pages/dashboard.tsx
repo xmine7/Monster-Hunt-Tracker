@@ -191,7 +191,12 @@ export default function Dashboard() {
     // Filter out cases where best and worst are the same set (e.g. only 1 active weapon or all have same points)
     // But keep them if they are distinct groups
     
-    return { totalPoints, weaponStats: sortedWeapons, totalHunts: hunts.length, bestWeapons, worstWeapons, bestHuntPerMonster };
+    // Calculate Max Possible Points
+    // (Active Weapons * 15) + 5 (Bonus Stars)
+    const activeWeaponCount = sortedWeapons.filter(w => w.hunts > 0).length;
+    const maxPossiblePoints = (activeWeaponCount * 15) + 5;
+
+    return { totalPoints, maxPossiblePoints, weaponStats: sortedWeapons, totalHunts: hunts.length, bestWeapons, worstWeapons, bestHuntPerMonster };
   }, [hunts]);
 
   const handleAddHunt = () => {
@@ -251,7 +256,10 @@ export default function Dashboard() {
           <div className="text-right">
             <div className="text-sm text-muted-foreground uppercase tracking-wider">Total Score</div>
             <div className="text-3xl font-display font-bold text-primary flex items-center justify-end gap-2">
-              {stats.totalPoints} <Diamond className="w-6 h-6 fill-primary/20" />
+              <span className="flex items-baseline gap-1">
+                {stats.totalPoints} <span className="text-lg text-muted-foreground font-normal">/ {stats.maxPossiblePoints}</span>
+              </span>
+              <Diamond className="w-6 h-6 fill-primary/20" />
             </div>
           </div>
           <div className="text-right border-l border-white/10 pl-6">
