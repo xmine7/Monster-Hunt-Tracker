@@ -7,7 +7,7 @@ import {
 import { 
   Skull, Medal, Star, Diamond, 
   Plus, Trophy, History, Swords,
-  TrendingUp, TrendingDown, RotateCcw, Trash2
+  TrendingUp, TrendingDown, RotateCcw, Trash2, Undo2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,9 @@ export default function Dashboard() {
   }, [hunts]);
 
   const [isAddOpen, setIsAddOpen] = useState(false);
+  
+  // History for Undo functionality
+  const [history, setHistory] = useState<HuntRecord[][]>([]);
 
   // Form State
   const [selectedMonster, setSelectedMonster] = useState(MONSTERS[0].id);
@@ -252,6 +255,9 @@ export default function Dashboard() {
     };
 
     setHunts(prev => {
+      // Save to history before modifying
+      setHistory(h => [...h, prev]);
+      
       const newHunts = [...prev];
       if (existingHuntIndex !== -1) {
         // Update existing
@@ -267,7 +273,15 @@ export default function Dashboard() {
     setTimeInput("");
   };
 
+  const handleUndo = () => {
+    if (history.length === 0) return;
+    const previous = history[history.length - 1];
+    setHunts(previous);
+    setHistory(h => h.slice(0, -1));
+  };
+
   const handleReset = () => {
+    setHistory(h => [...h, hunts]); // Save current state before reset
     setHunts(INITIAL_HUNTS);
     localStorage.removeItem("mhw-hunts");
   };
@@ -352,6 +366,17 @@ export default function Dashboard() {
               <Swords className="w-6 h-6 text-primary" /> Weapon Performance
             </h2>
             <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={handleUndo}
+                disabled={history.length === 0}
+                className="bg-background/50 border-white/10 h-9 w-9 hover:bg-white/10 disabled:opacity-30"
+                title="Undo last action"
+              >
+                <Undo2 className="w-4 h-4 text-slate-200" />
+              </Button>
+
               <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
                 <SelectTrigger className="w-[140px] bg-background/50 border-white/10 h-9 text-xs font-bold uppercase tracking-wide">
                   <SelectValue placeholder="Sort By" />
