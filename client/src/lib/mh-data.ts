@@ -25,11 +25,11 @@ export interface HuntRecord {
 }
 
 export const MONSTERS: Monster[] = [
-  { id: "nergigante", name: "Tempered Nergigante", icon: Circle, color: "text-gray-400" },
-  { id: "kulve", name: "Kulve Taroth", icon: Diamond, color: "text-cyan-400" },
-  { id: "alatreon", name: "Alatreon", icon: Zap, color: "text-yellow-400" },
-  { id: "velkhana", name: "Arch Tempered Velkhana", icon: Snowflake, color: "text-blue-300" },
   { id: "fatalis", name: "Fatalis", icon: Flame, color: "text-red-500" },
+  { id: "velkhana", name: "Arch Tempered Velkhana", icon: Snowflake, color: "text-blue-300" },
+  { id: "alatreon", name: "Alatreon", icon: Zap, color: "text-yellow-400" },
+  { id: "kulve", name: "Kulve Taroth", icon: Diamond, color: "text-cyan-400" },
+  { id: "nergigante", name: "Tempered Nergigante", icon: Circle, color: "text-gray-400" },
 ];
 
 export const WEAPONS: Weapon[] = [

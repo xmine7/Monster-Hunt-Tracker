@@ -463,6 +463,12 @@ export default function Dashboard() {
                       {hunts.filter(h => h.weaponId === weapon.id && h.isPb).length > 0 ? (
                         hunts
                           .filter(h => h.weaponId === weapon.id && h.isPb)
+                          // Sort PBs by monster order
+                          .sort((a, b) => {
+                            const aIndex = MONSTERS.findIndex(m => m.id === a.monsterId);
+                            const bIndex = MONSTERS.findIndex(m => m.id === b.monsterId);
+                            return aIndex - bIndex;
+                          })
                           .map(hunt => {
                             const monster = MONSTERS.find(m => m.id === hunt.monsterId)!;
                             const rank = getRank(hunt.timeSeconds);
