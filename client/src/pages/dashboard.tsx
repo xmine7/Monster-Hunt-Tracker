@@ -262,7 +262,7 @@ export default function Dashboard() {
                       <SelectTrigger className="bg-background/50 border-white/10">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-card border-white/10 text-slate-200">
+                      <SelectContent className="bg-card border-white/10 text-slate-200 max-h-[40vh] overflow-y-auto">
                         {MONSTERS.map(m => (
                           <SelectItem key={m.id} value={m.id}>
                              <div className="flex items-center gap-2">
@@ -279,7 +279,7 @@ export default function Dashboard() {
                       <SelectTrigger className="bg-background/50 border-white/10">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-card border-white/10 text-slate-200">
+                      <SelectContent className="bg-card border-white/10 text-slate-200 max-h-[40vh] overflow-y-auto">
                         {WEAPONS.map(w => (
                           <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
                         ))}
