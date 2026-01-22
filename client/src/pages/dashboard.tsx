@@ -8,7 +8,7 @@ import {
 import { 
   Skull, Medal, Star, Diamond, 
   Plus, Trophy, History, Swords,
-  TrendingUp, TrendingDown, RotateCcw, Trash2, Undo2
+  TrendingUp, TrendingDown, RotateCcw, Trash2, Undo2, Shuffle, Dices
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -80,6 +80,37 @@ export default function Dashboard() {
   const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0].id);
   const [timeInput, setTimeInput] = useState("");
   const [sortBy, setSortBy] = useState<"default" | "points" | "hunts">("default");
+
+  // Random Challenge State
+  const [isRandomOpen, setIsRandomOpen] = useState(false);
+  const [selectedRandomMonsters, setSelectedRandomMonsters] = useState<string[]>(MONSTERS.map(m => m.id));
+  const [selectedRandomWeapons, setSelectedRandomWeapons] = useState<string[]>(WEAPONS.map(w => w.id));
+  const [randomResult, setRandomResult] = useState<{ monster: string, weapon: string } | null>(null);
+
+  const handleRandomChallenge = () => {
+    if (selectedRandomMonsters.length === 0 || selectedRandomWeapons.length === 0) return;
+    
+    const randomMonster = selectedRandomMonsters[Math.floor(Math.random() * selectedRandomMonsters.length)];
+    const randomWeapon = selectedRandomWeapons[Math.floor(Math.random() * selectedRandomWeapons.length)];
+    
+    setRandomResult({ monster: randomMonster, weapon: randomWeapon });
+  };
+
+  const toggleRandomMonster = (monsterId: string) => {
+    setSelectedRandomMonsters(prev => 
+      prev.includes(monsterId) 
+        ? prev.filter(id => id !== monsterId)
+        : [...prev, monsterId]
+    );
+  };
+
+  const toggleRandomWeapon = (weaponId: string) => {
+    setSelectedRandomWeapons(prev => 
+      prev.includes(weaponId) 
+        ? prev.filter(id => id !== weaponId)
+        : [...prev, weaponId]
+    );
+  };
 
   // Mutations
   const addHuntMutation = useMutation({
@@ -596,6 +627,124 @@ export default function Dashboard() {
               })}
             </div>
           </ScrollArea>
+
+          {/* Random Challenge Card */}
+          <Card className="bg-gradient-to-br from-card/60 to-purple-500/10 border-purple-500/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="font-display text-lg text-white flex items-center gap-2">
+                <Dices className="w-5 h-5 text-purple-400" /> Random Challenge
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Dialog open={isRandomOpen} onOpenChange={setIsRandomOpen}>
+                <DialogTrigger asChild>
+                  <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold">
+                    <Shuffle className="w-4 h-4 mr-2" /> Pick Random Hunt
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-card border-white/10 text-slate-200 max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="font-display text-2xl flex items-center gap-2">
+                      <Dices className="w-6 h-6 text-purple-400" /> Random Challenge
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    {/* Monster Selection */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Monsters</Label>
+                      <div className="grid grid-cols-1 gap-2">
+                        {MONSTERS.map(m => (
+                          <button
+                            key={m.id}
+                            onClick={() => toggleRandomMonster(m.id)}
+                            className={cn(
+                              "flex items-center gap-2 p-2 rounded-lg border transition-all text-left",
+                              selectedRandomMonsters.includes(m.id)
+                                ? "bg-white/10 border-purple-500/50"
+                                : "bg-black/20 border-white/5 opacity-50"
+                            )}
+                          >
+                            <m.icon className={cn("w-4 h-4", m.color)} />
+                            <span className="text-sm">{m.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Weapon Selection */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Weapons</Label>
+                      <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
+                        {WEAPONS.map(w => (
+                          <button
+                            key={w.id}
+                            onClick={() => toggleRandomWeapon(w.id)}
+                            className={cn(
+                              "p-2 rounded-lg border transition-all text-left text-sm",
+                              selectedRandomWeapons.includes(w.id)
+                                ? "bg-white/10 border-purple-500/50"
+                                : "bg-black/20 border-white/5 opacity-50"
+                            )}
+                          >
+                            {w.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Roll Button */}
+                    <Button 
+                      onClick={handleRandomChallenge} 
+                      disabled={selectedRandomMonsters.length === 0 || selectedRandomWeapons.length === 0}
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-lg py-6"
+                    >
+                      <Dices className="w-5 h-5 mr-2" /> Roll!
+                    </Button>
+
+                    {/* Result Display */}
+                    {randomResult && (
+                      <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/30 text-center">
+                        <div className="text-xs uppercase tracking-wider text-purple-300 mb-2">Your Challenge</div>
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          {(() => {
+                            const monster = MONSTERS.find(m => m.id === randomResult.monster)!;
+                            return (
+                              <>
+                                <monster.icon className={cn("w-6 h-6", monster.color)} />
+                                <span className="text-xl font-display font-bold text-white">{monster.name}</span>
+                              </>
+                            );
+                          })()}
+                        </div>
+                        <div className="text-muted-foreground">with</div>
+                        <div className="text-lg font-bold text-purple-300 mt-1">
+                          {WEAPONS.find(w => w.id === randomResult.weapon)?.name}
+                        </div>
+                        {(() => {
+                          const existingHunt = hunts.find(
+                            (h: HuntRecord) => h.monsterId === randomResult.monster && h.weaponId === randomResult.weapon
+                          );
+                          if (existingHunt) {
+                            return (
+                              <div className="mt-3 p-2 rounded bg-black/30 text-sm">
+                                <span className="text-muted-foreground">Current PB: </span>
+                                <span className="font-mono font-bold text-primary">{formatTime(existingHunt.timeSeconds)}</span>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div className="mt-3 p-2 rounded bg-black/30 text-sm text-muted-foreground">
+                              No record yet - set a new PB!
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
 
           <Card className="bg-card/40 border-white/5 backdrop-blur-sm">
             <CardHeader>
