@@ -151,10 +151,26 @@ export default function Dashboard() {
     // Sort active weapons by points (descending) for Best/Worst calculation
     const pointsSortedWeapons = [...activeWeapons].sort((a, b) => b.points - a.points);
     
-    const bestWeapon = pointsSortedWeapons.length > 0 ? pointsSortedWeapons[0] : null;
-    const worstWeapon = pointsSortedWeapons.length > 0 ? pointsSortedWeapons[pointsSortedWeapons.length - 1] : null;
+    // Handle ties for best weapons
+    const bestWeapons = [];
+    if (pointsSortedWeapons.length > 0) {
+      const maxPoints = pointsSortedWeapons[0].points;
+      // Get all weapons that have the max points
+      bestWeapons.push(...pointsSortedWeapons.filter(w => w.points === maxPoints));
+    }
 
-    return { totalPoints, weaponStats: sortedWeapons, totalHunts: hunts.length, bestWeapon, worstWeapon, bestTimePerMonster };
+    // Handle ties for worst weapons
+    const worstWeapons = [];
+    if (pointsSortedWeapons.length > 0) {
+      const minPoints = pointsSortedWeapons[pointsSortedWeapons.length - 1].points;
+      // Get all weapons that have the min points
+      worstWeapons.push(...pointsSortedWeapons.filter(w => w.points === minPoints));
+    }
+    
+    // Filter out cases where best and worst are the same set (e.g. only 1 active weapon or all have same points)
+    // But keep them if they are distinct groups
+    
+    return { totalPoints, weaponStats: sortedWeapons, totalHunts: hunts.length, bestWeapons, worstWeapons, bestTimePerMonster };
   }, [hunts]);
 
   const handleAddHunt = () => {
@@ -228,31 +244,34 @@ export default function Dashboard() {
 
       {/* Stats Highlights */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {stats.bestWeapon && (
+        {stats.bestWeapons.length > 0 && (
           <Card className="bg-gradient-to-br from-card/60 to-primary/10 border-primary/20">
              <CardContent className="flex items-center justify-between p-6">
-               <div>
-                 <div className="text-sm text-primary uppercase font-bold tracking-wider mb-1">Best Performing Weapon</div>
-                 <div className="text-2xl font-display font-bold text-white">
-                   {WEAPONS.find(w => w.id === stats.bestWeapon?.id)?.name}
+               <div className="flex-1 min-w-0 mr-4">
+                 <div className="text-sm text-primary uppercase font-bold tracking-wider mb-1">Best Performing Weapon{stats.bestWeapons.length > 1 ? 's' : ''}</div>
+                 <div className="text-2xl font-display font-bold text-white truncate leading-tight">
+                   {stats.bestWeapons.map(w => WEAPONS.find(weapon => weapon.id === w.id)?.name).join(", ")}
                  </div>
                </div>
-               <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+               <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                  <TrendingUp className="w-6 h-6 text-primary" />
                </div>
              </CardContent>
           </Card>
         )}
-        {stats.worstWeapon && stats.worstWeapon.id !== stats.bestWeapon?.id && (
+        
+        {stats.worstWeapons.length > 0 && 
+         // Don't show "Needs Improvement" if it's the exact same set as "Best Performing" (e.g. only 1 weapon used)
+         !(stats.bestWeapons.length === stats.worstWeapons.length && stats.bestWeapons.every(bw => stats.worstWeapons.some(ww => ww.id === bw.id))) && (
           <Card className="bg-gradient-to-br from-card/60 to-destructive/10 border-destructive/20">
              <CardContent className="flex items-center justify-between p-6">
-               <div>
+               <div className="flex-1 min-w-0 mr-4">
                  <div className="text-sm text-destructive uppercase font-bold tracking-wider mb-1">Needs Improvement</div>
-                 <div className="text-2xl font-display font-bold text-white">
-                   {WEAPONS.find(w => w.id === stats.worstWeapon?.id)?.name}
+                 <div className="text-2xl font-display font-bold text-white truncate leading-tight">
+                   {stats.worstWeapons.map(w => WEAPONS.find(weapon => weapon.id === w.id)?.name).join(", ")}
                  </div>
                </div>
-               <div className="h-12 w-12 rounded-full bg-destructive/20 flex items-center justify-center">
+               <div className="h-12 w-12 rounded-full bg-destructive/20 flex items-center justify-center shrink-0">
                  <TrendingDown className="w-6 h-6 text-destructive" />
                </div>
              </CardContent>
