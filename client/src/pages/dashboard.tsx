@@ -80,6 +80,7 @@ export default function Dashboard() {
   const [selectedMonster, setSelectedMonster] = useState(MONSTERS[0].id);
   const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0].id);
   const [timeInput, setTimeInput] = useState("");
+  const [sortBy, setSortBy] = useState<"default" | "points" | "hunts">("default");
 
   const stats = useMemo(() => {
     const weaponStats: Record<string, { points: number, hunts: number, attempts: number, gold: number, silver: number, bronze: number, skull: number, star: number, lastHuntDate: number }> = {};
@@ -145,23 +146,50 @@ export default function Dashboard() {
 
     const sortedWeapons = Object.entries(weaponStats)
       .map(([id, stat]) => ({ id, ...stat }))
-      // Default Sort: Active weapons by Last Updated (desc), then Inactive weapons by base game order
       .sort((a, b) => {
         // First check: Are they active?
         const aActive = a.hunts > 0;
         const bActive = b.hunts > 0;
 
-        // If both have hunts, sort by Last Hunt Date (Newest first)
+        // Sorting Logic
+        if (sortBy === "points") {
+          // Active first, then by points (desc)
+          if (aActive && !bActive) return -1;
+          if (!aActive && bActive) return 1;
+          if (aActive && bActive) {
+            if (b.points !== a.points) return b.points - a.points;
+            // Tie-breaker: Last Hunt Date
+            return b.lastHuntDate - a.lastHuntDate;
+          }
+          // Inactive: Base Order
+          const aIndex = WEAPONS.findIndex(w => w.id === a.id);
+          const bIndex = WEAPONS.findIndex(w => w.id === b.id);
+          return aIndex - bIndex;
+        }
+
+        if (sortBy === "hunts") {
+          // Active first, then by hunts (desc)
+          if (aActive && !bActive) return -1;
+          if (!aActive && bActive) return 1;
+          if (aActive && bActive) {
+            if (b.attempts !== a.attempts) return b.attempts - a.attempts;
+             // Tie-breaker: Points
+            return b.points - a.points;
+          }
+          // Inactive: Base Order
+          const aIndex = WEAPONS.findIndex(w => w.id === a.id);
+          const bIndex = WEAPONS.findIndex(w => w.id === b.id);
+          return aIndex - bIndex;
+        }
+
+        // Default: Active weapons by Last Updated (desc), then Inactive weapons by base game order
         if (aActive && bActive) {
            return b.lastHuntDate - a.lastHuntDate;
         }
 
-        // If one is active and the other is not, active comes first
         if (aActive && !bActive) return -1;
         if (!aActive && bActive) return 1;
 
-        // If neither have hunts (or we want to preserve base order for inactive ones)
-        // Sort by their index in the WEAPONS array (Base Game Order)
         const aIndex = WEAPONS.findIndex(w => w.id === a.id);
         const bIndex = WEAPONS.findIndex(w => w.id === b.id);
         return aIndex - bIndex;
@@ -200,7 +228,7 @@ export default function Dashboard() {
     const totalAttempts = hunts.reduce((acc, hunt) => acc + (hunt.attempts || 1), 0);
 
     return { totalPoints, maxPossiblePoints, weaponStats: sortedWeapons, totalHunts: totalAttempts, bestWeapons, worstWeapons, bestHuntPerMonster };
-  }, [hunts]);
+  }, [hunts, sortBy]);
 
   const handleAddHunt = () => {
     const time = parseTime(timeInput);
@@ -317,16 +345,28 @@ export default function Dashboard() {
         
         {/* Left Column: Weapon Stats */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-2xl font-display font-bold flex items-center gap-2">
               <Swords className="w-6 h-6 text-primary" /> Weapon Performance
             </h2>
-            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-primary text-background hover:bg-primary/90 font-display font-bold tracking-wider">
-                  <Plus className="w-4 h-4 mr-2" /> Log Hunt
-                </Button>
-              </DialogTrigger>
+            <div className="flex items-center gap-3">
+              <Select value={sortBy} onValueChange={(v: any) => setSortBy(v)}>
+                <SelectTrigger className="w-[140px] bg-background/50 border-white/10 h-9 text-xs font-bold uppercase tracking-wide">
+                  <SelectValue placeholder="Sort By" />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-white/10 text-slate-200">
+                  <SelectItem value="default">Most Recent</SelectItem>
+                  <SelectItem value="points">Total Points</SelectItem>
+                  <SelectItem value="hunts">Total Hunts</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-primary text-background hover:bg-primary/90 font-display font-bold tracking-wider h-9">
+                    <Plus className="w-4 h-4 mr-2" /> Log Hunt
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="bg-card border-white/10 text-slate-200">
                 <DialogHeader>
                   <DialogTitle className="font-display text-2xl">Log New Hunt</DialogTitle>
@@ -377,6 +417,7 @@ export default function Dashboard() {
                 </div>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
 
           <div className="grid gap-4">
