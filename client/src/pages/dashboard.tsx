@@ -649,116 +649,138 @@ export default function Dashboard() {
                     </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
-                    {/* Monster Selection */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <Label className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Monsters</Label>
-                        <button
-                          onClick={() => setSelectedRandomMonsters(
-                            selectedRandomMonsters.length === MONSTERS.length ? [] : MONSTERS.map(m => m.id)
-                          )}
-                          className="text-xs text-purple-400 hover:text-purple-300"
-                        >
-                          {selectedRandomMonsters.length === MONSTERS.length ? "Deselect All" : "Select All"}
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-1 gap-2">
-                        {MONSTERS.map(m => (
-                          <button
-                            key={m.id}
-                            onClick={() => toggleRandomMonster(m.id)}
-                            className={cn(
-                              "flex items-center gap-2 p-2 rounded-lg border transition-all text-left",
-                              selectedRandomMonsters.includes(m.id)
-                                ? "bg-white/10 border-purple-500/50"
-                                : "bg-black/20 border-white/5 opacity-50"
-                            )}
-                          >
-                            <m.icon className={cn("w-4 h-4", m.color)} />
-                            <span className="text-sm">{m.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Weapon Selection */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <Label className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Weapons</Label>
-                        <button
-                          onClick={() => setSelectedRandomWeapons(
-                            selectedRandomWeapons.length === WEAPONS.length ? [] : WEAPONS.map(w => w.id)
-                          )}
-                          className="text-xs text-purple-400 hover:text-purple-300"
-                        >
-                          {selectedRandomWeapons.length === WEAPONS.length ? "Deselect All" : "Select All"}
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
-                        {WEAPONS.map(w => (
-                          <button
-                            key={w.id}
-                            onClick={() => toggleRandomWeapon(w.id)}
-                            className={cn(
-                              "p-2 rounded-lg border transition-all text-left text-sm",
-                              selectedRandomWeapons.includes(w.id)
-                                ? "bg-white/10 border-purple-500/50"
-                                : "bg-black/20 border-white/5 opacity-50"
-                            )}
-                          >
-                            {w.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Roll Button */}
-                    <Button 
-                      onClick={handleRandomChallenge} 
-                      disabled={selectedRandomMonsters.length === 0 || selectedRandomWeapons.length === 0}
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-lg py-6"
-                    >
-                      <Dices className="w-5 h-5 mr-2" /> Roll!
-                    </Button>
-
-                    {/* Result Display */}
-                    {randomResult && (
-                      <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/30 text-center">
-                        <div className="text-xs uppercase tracking-wider text-purple-300 mb-2">Your Challenge</div>
-                        <div className="flex items-center justify-center gap-2 mb-2">
+                    {/* Show Result Screen or Selection Screen */}
+                    {randomResult ? (
+                      /* Result Display */
+                      <div className="text-center">
+                        <div className="p-6 rounded-xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/30">
+                          <div className="text-xs uppercase tracking-wider text-purple-300 mb-3">Your Challenge</div>
+                          <div className="flex items-center justify-center gap-3 mb-3">
+                            {(() => {
+                              const monster = MONSTERS.find(m => m.id === randomResult.monster)!;
+                              return (
+                                <>
+                                  <monster.icon className={cn("w-8 h-8", monster.color)} />
+                                  <span className="text-2xl font-display font-bold text-white">{monster.name}</span>
+                                </>
+                              );
+                            })()}
+                          </div>
+                          <div className="text-muted-foreground text-lg">with</div>
+                          <div className="text-xl font-bold text-purple-300 mt-2">
+                            {WEAPONS.find(w => w.id === randomResult.weapon)?.name}
+                          </div>
                           {(() => {
-                            const monster = MONSTERS.find(m => m.id === randomResult.monster)!;
+                            const existingHunt = hunts.find(
+                              (h: HuntRecord) => h.monsterId === randomResult.monster && h.weaponId === randomResult.weapon
+                            );
+                            if (existingHunt) {
+                              return (
+                                <div className="mt-4 p-3 rounded bg-black/30 text-sm">
+                                  <span className="text-muted-foreground">Current PB: </span>
+                                  <span className="font-mono font-bold text-primary text-lg">{formatTime(existingHunt.timeSeconds)}</span>
+                                </div>
+                              );
+                            }
                             return (
-                              <>
-                                <monster.icon className={cn("w-6 h-6", monster.color)} />
-                                <span className="text-xl font-display font-bold text-white">{monster.name}</span>
-                              </>
+                              <div className="mt-4 p-3 rounded bg-black/30 text-sm text-muted-foreground">
+                                No record yet - set a new PB!
+                              </div>
                             );
                           })()}
                         </div>
-                        <div className="text-muted-foreground">with</div>
-                        <div className="text-lg font-bold text-purple-300 mt-1">
-                          {WEAPONS.find(w => w.id === randomResult.weapon)?.name}
+                        
+                        <div className="flex gap-3 mt-6">
+                          <Button 
+                            onClick={() => setRandomResult(null)} 
+                            variant="outline"
+                            className="flex-1 border-white/10 hover:bg-white/5"
+                          >
+                            Back
+                          </Button>
+                          <Button 
+                            onClick={handleRandomChallenge} 
+                            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold"
+                          >
+                            <Dices className="w-4 h-4 mr-2" /> Roll Again
+                          </Button>
                         </div>
-                        {(() => {
-                          const existingHunt = hunts.find(
-                            (h: HuntRecord) => h.monsterId === randomResult.monster && h.weaponId === randomResult.weapon
-                          );
-                          if (existingHunt) {
-                            return (
-                              <div className="mt-3 p-2 rounded bg-black/30 text-sm">
-                                <span className="text-muted-foreground">Current PB: </span>
-                                <span className="font-mono font-bold text-primary">{formatTime(existingHunt.timeSeconds)}</span>
-                              </div>
-                            );
-                          }
-                          return (
-                            <div className="mt-3 p-2 rounded bg-black/30 text-sm text-muted-foreground">
-                              No record yet - set a new PB!
-                            </div>
-                          );
-                        })()}
                       </div>
+                    ) : (
+                      /* Selection Screen */
+                      <>
+                        {/* Monster Selection */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Monsters</Label>
+                            <button
+                              onClick={() => setSelectedRandomMonsters(
+                                selectedRandomMonsters.length === MONSTERS.length ? [] : MONSTERS.map(m => m.id)
+                              )}
+                              className="text-xs text-purple-400 hover:text-purple-300"
+                            >
+                              {selectedRandomMonsters.length === MONSTERS.length ? "Deselect All" : "Select All"}
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 gap-2">
+                            {MONSTERS.map(m => (
+                              <button
+                                key={m.id}
+                                onClick={() => toggleRandomMonster(m.id)}
+                                className={cn(
+                                  "flex items-center gap-2 p-2 rounded-lg border transition-all text-left",
+                                  selectedRandomMonsters.includes(m.id)
+                                    ? "bg-white/10 border-purple-500/50"
+                                    : "bg-black/20 border-white/5 opacity-50"
+                                )}
+                              >
+                                <m.icon className={cn("w-4 h-4", m.color)} />
+                                <span className="text-sm">{m.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Weapon Selection */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Weapons</Label>
+                            <button
+                              onClick={() => setSelectedRandomWeapons(
+                                selectedRandomWeapons.length === WEAPONS.length ? [] : WEAPONS.map(w => w.id)
+                              )}
+                              className="text-xs text-purple-400 hover:text-purple-300"
+                            >
+                              {selectedRandomWeapons.length === WEAPONS.length ? "Deselect All" : "Select All"}
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
+                            {WEAPONS.map(w => (
+                              <button
+                                key={w.id}
+                                onClick={() => toggleRandomWeapon(w.id)}
+                                className={cn(
+                                  "p-2 rounded-lg border transition-all text-left text-sm",
+                                  selectedRandomWeapons.includes(w.id)
+                                    ? "bg-white/10 border-purple-500/50"
+                                    : "bg-black/20 border-white/5 opacity-50"
+                                )}
+                              >
+                                {w.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Roll Button */}
+                        <Button 
+                          onClick={handleRandomChallenge} 
+                          disabled={selectedRandomMonsters.length === 0 || selectedRandomWeapons.length === 0}
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-lg py-6"
+                        >
+                          <Dices className="w-5 h-5 mr-2" /> Roll!
+                        </Button>
+                      </>
                     )}
                   </div>
                 </DialogContent>
