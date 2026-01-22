@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { 
   MONSTERS, WEAPONS, INITIAL_HUNTS, 
   getRank, getPoints, formatTime, parseTime, 
@@ -41,7 +41,28 @@ function RankIcon({ rank, className }: { rank: Rank, className?: string }) {
 }
 
 export default function Dashboard() {
-  const [hunts, setHunts] = useState<HuntRecord[]>(INITIAL_HUNTS);
+  // Load from local storage or use initial
+  const [hunts, setHunts] = useState<HuntRecord[]>(() => {
+    const saved = localStorage.getItem("mhw-hunts");
+    if (saved) {
+      try {
+        // Parse dates back to Date objects
+        return JSON.parse(saved, (key, value) => 
+          key === 'date' ? new Date(value) : value
+        );
+      } catch (e) {
+        console.error("Failed to parse local storage", e);
+        return INITIAL_HUNTS;
+      }
+    }
+    return INITIAL_HUNTS;
+  });
+
+  // Save to local storage whenever hunts change
+  useEffect(() => {
+    localStorage.setItem("mhw-hunts", JSON.stringify(hunts));
+  }, [hunts]);
+
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   // Form State
