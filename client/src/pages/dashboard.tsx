@@ -147,8 +147,12 @@ export default function Dashboard() {
 
     // Get Best and Worst (only considering weapons with > 0 hunts)
     const activeWeapons = sortedWeapons.filter(w => w.hunts > 0);
-    const bestWeapon = activeWeapons.length > 0 ? activeWeapons[0] : null;
-    const worstWeapon = activeWeapons.length > 0 ? activeWeapons[activeWeapons.length - 1] : null;
+    
+    // Sort active weapons by points (descending) for Best/Worst calculation
+    const pointsSortedWeapons = [...activeWeapons].sort((a, b) => b.points - a.points);
+    
+    const bestWeapon = pointsSortedWeapons.length > 0 ? pointsSortedWeapons[0] : null;
+    const worstWeapon = pointsSortedWeapons.length > 0 ? pointsSortedWeapons[pointsSortedWeapons.length - 1] : null;
 
     return { totalPoints, weaponStats: sortedWeapons, totalHunts: hunts.length, bestWeapon, worstWeapon, bestTimePerMonster };
   }, [hunts]);
