@@ -642,7 +642,7 @@ export default function Dashboard() {
                     <Shuffle className="w-4 h-4 mr-2" /> Pick Random Hunt
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-card border-white/10 text-slate-200 max-w-md">
+                <DialogContent className="bg-card border-white/10 text-slate-200 max-w-md max-h-[85vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="font-display text-2xl flex items-center gap-2">
                       <Dices className="w-6 h-6 text-purple-400" /> Random Challenge
