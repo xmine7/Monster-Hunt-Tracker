@@ -241,20 +241,29 @@ export default function Dashboard() {
           </div>
 
           <div className="grid gap-4">
-            {stats.weaponStats.filter(w => w.hunts > 0).map((weapon) => {
+            {stats.weaponStats.map((weapon) => {
               const weaponName = WEAPONS.find(w => w.id === weapon.id)?.name;
+              const isInactive = weapon.hunts === 0;
               return (
-                <Card key={weapon.id} className="bg-card/40 border-white/5 backdrop-blur-sm overflow-hidden group hover:bg-card/60 transition-colors">
+                <Card key={weapon.id} className={cn(
+                  "bg-card/40 border-white/5 backdrop-blur-sm overflow-hidden group transition-all",
+                  isInactive ? "opacity-50 hover:opacity-100 grayscale hover:grayscale-0" : "hover:bg-card/60"
+                )}>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
                       <CardTitle className="font-display text-xl text-white flex items-center gap-2">
                         {weaponName}
-                        <Badge variant="outline" className="ml-2 bg-white/5 border-white/10 text-xs">
-                          {weapon.hunts} Hunts
-                        </Badge>
+                        {weapon.hunts > 0 && (
+                          <Badge variant="outline" className="ml-2 bg-white/5 border-white/10 text-xs">
+                            {weapon.hunts} Hunts
+                          </Badge>
+                        )}
                       </CardTitle>
-                      <div className="flex items-center gap-1 text-primary font-bold font-mono text-lg">
-                        {weapon.points} <Diamond className="w-4 h-4 fill-primary/20" />
+                      <div className={cn(
+                        "flex items-center gap-1 font-bold font-mono text-lg",
+                        isInactive ? "text-muted-foreground" : "text-primary"
+                      )}>
+                        {weapon.points} <Diamond className={cn("w-4 h-4", isInactive ? "fill-muted/20" : "fill-primary/20")} />
                       </div>
                     </div>
                   </CardHeader>
@@ -268,37 +277,35 @@ export default function Dashboard() {
                     </div>
                     
                     {/* Personal Bests List for this weapon */}
-                    <div className="space-y-1 mt-2 border-t border-white/5 pt-2">
-                      {hunts
-                        .filter(h => h.weaponId === weapon.id && h.isPb)
-                        .map(hunt => {
-                          const monster = MONSTERS.find(m => m.id === hunt.monsterId)!;
-                          const rank = getRank(hunt.timeSeconds);
-                          return (
-                            <div key={hunt.id} className="flex items-center justify-between text-sm py-1">
-                              <div className="flex items-center gap-2 text-slate-300">
-                                <monster.icon className={cn("w-4 h-4", monster.color)} />
-                                <span className="text-xs uppercase tracking-wide opacity-70">PB</span>
-                                <span className="font-mono">{formatTime(hunt.timeSeconds)}</span>
+                    <div className="space-y-1 mt-2 border-t border-white/5 pt-2 min-h-[20px]">
+                      {hunts.filter(h => h.weaponId === weapon.id && h.isPb).length > 0 ? (
+                        hunts
+                          .filter(h => h.weaponId === weapon.id && h.isPb)
+                          .map(hunt => {
+                            const monster = MONSTERS.find(m => m.id === hunt.monsterId)!;
+                            const rank = getRank(hunt.timeSeconds);
+                            return (
+                              <div key={hunt.id} className="flex items-center justify-between text-sm py-1">
+                                <div className="flex items-center gap-2 text-slate-300">
+                                  <monster.icon className={cn("w-4 h-4", monster.color)} />
+                                  <span className="text-xs uppercase tracking-wide opacity-70">PB</span>
+                                  <span className="font-mono">{formatTime(hunt.timeSeconds)}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <RankIcon rank={rank} className="w-4 h-4" />
+                                  {hunt.isPb && <Star className="w-3 h-3 text-accent fill-accent" />}
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <RankIcon rank={rank} className="w-4 h-4" />
-                                {hunt.isPb && <Star className="w-3 h-3 text-accent fill-accent" />}
-                              </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })
+                      ) : (
+                        <div className="text-xs text-muted-foreground py-1 italic">No records yet</div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
               );
             })}
-            
-            {stats.weaponStats.every(w => w.hunts === 0) && (
-              <div className="text-center py-12 text-muted-foreground border border-dashed border-white/10 rounded-xl">
-                No hunts logged yet. Start hunting!
-              </div>
-            )}
           </div>
         </div>
 
