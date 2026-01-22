@@ -71,12 +71,12 @@ export default function Dashboard() {
   const [timeInput, setTimeInput] = useState("");
 
   const stats = useMemo(() => {
-    const weaponStats: Record<string, { points: number, hunts: number, gold: number, silver: number, bronze: number, skull: number, star: number }> = {};
+    const weaponStats: Record<string, { points: number, hunts: number, gold: number, silver: number, bronze: number, skull: number, star: number, lastHuntDate: number }> = {};
     let totalPoints = 0;
     
     // Initialize
     WEAPONS.forEach(w => {
-      weaponStats[w.id] = { points: 0, hunts: 0, gold: 0, silver: 0, bronze: 0, skull: 0, star: 0 };
+      weaponStats[w.id] = { points: 0, hunts: 0, gold: 0, silver: 0, bronze: 0, skull: 0, star: 0, lastHuntDate: 0 };
     });
 
     hunts.forEach(hunt => {
@@ -89,27 +89,32 @@ export default function Dashboard() {
         ws.hunts += 1;
         ws[rank]++;
         if (hunt.isPb) ws.star++;
+        
+        // Track the most recent hunt time for this weapon
+        const huntTime = new Date(hunt.date).getTime();
+        if (huntTime > ws.lastHuntDate) {
+          ws.lastHuntDate = huntTime;
+        }
       }
       totalPoints += points;
     });
 
     const sortedWeapons = Object.entries(weaponStats)
       .map(([id, stat]) => ({ id, ...stat }))
-      // Default Sort: Active weapons by points (desc), then Inactive weapons by base game order
+      // Default Sort: Active weapons by Last Updated (desc), then Inactive weapons by base game order
       .sort((a, b) => {
         // First check: Are they active?
         const aActive = a.hunts > 0;
         const bActive = b.hunts > 0;
 
-        // If both have hunts, sort by points (high to low)
+        // If both have hunts, sort by Last Hunt Date (Newest first)
         if (aActive && bActive) {
-           return b.points - a.points;
+           return b.lastHuntDate - a.lastHuntDate;
         }
 
         // If one is active and the other is not, active comes first
-        // Commented out to keep fixed order when requested
-        // if (aActive && !bActive) return -1;
-        // if (!aActive && bActive) return 1;
+        if (aActive && !bActive) return -1;
+        if (!aActive && bActive) return 1;
 
         // If neither have hunts (or we want to preserve base order for inactive ones)
         // Sort by their index in the WEAPONS array (Base Game Order)
