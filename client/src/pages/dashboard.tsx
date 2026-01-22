@@ -7,10 +7,21 @@ import {
 import { 
   Skull, Medal, Star, Diamond, 
   Plus, Trophy, History, Swords,
-  TrendingUp, TrendingDown
+  TrendingUp, TrendingDown, RotateCcw, Trash2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -154,6 +165,11 @@ export default function Dashboard() {
     setHunts(prev => [newHunt, ...prev]);
     setIsAddOpen(false);
     setTimeInput("");
+  };
+
+  const handleReset = () => {
+    setHunts(INITIAL_HUNTS);
+    localStorage.removeItem("mhw-hunts");
   };
 
   return (
@@ -421,6 +437,31 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Reset Section */}
+      <div className="flex justify-center pt-8 pb-4 border-t border-white/5">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" className="text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+              <RotateCcw className="w-4 h-4 mr-2" /> Reset All Data
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="bg-card border-white/10 text-slate-200">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                This action cannot be undone. This will permanently delete your hunting logs and reset the dashboard to its default state.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-transparent border-white/10 hover:bg-white/5 hover:text-white">Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                <Trash2 className="w-4 h-4 mr-2" /> Reset Everything
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
