@@ -221,9 +221,11 @@ export default function Dashboard() {
     // But keep them if they are distinct groups
     
     // Calculate Max Possible Points
-    // (Active Weapons * 15) + 5 (Bonus Stars)
+    // (Active Weapons * 15) + (Number of Unique Monsters Hunted)
+    // The bonus star points are only "available" to be earned once a monster has been attempted.
     const activeWeaponCount = sortedWeapons.filter(w => w.hunts > 0).length;
-    const maxPossiblePoints = (activeWeaponCount * 15) + 5;
+    const uniqueMonstersHunted = new Set(hunts.map(h => h.monsterId)).size;
+    const maxPossiblePoints = (activeWeaponCount * 15) + uniqueMonstersHunted;
     
     const totalAttempts = hunts.reduce((acc, hunt) => acc + (hunt.attempts || 1), 0);
 
