@@ -91,17 +91,38 @@ export default function Dashboard() {
     });
 
     // Calculate Best Time per Monster (across ALL weapons)
-    const bestTimePerMonster: Record<string, number> = {};
+    // We store the ID of the hunt that holds the record.
+    // Logic: Lowest time wins. Tie-breaker: Newest date wins.
+    const bestHuntPerMonster: Record<string, string> = {}; // monsterId -> huntId
+    const bestStatsPerMonster: Record<string, { time: number, date: number }> = {};
+
     hunts.forEach(hunt => {
-      if (!bestTimePerMonster[hunt.monsterId] || hunt.timeSeconds < bestTimePerMonster[hunt.monsterId]) {
-        bestTimePerMonster[hunt.monsterId] = hunt.timeSeconds;
+      const currentStats = bestStatsPerMonster[hunt.monsterId];
+      const huntDate = new Date(hunt.date).getTime();
+
+      if (!currentStats) {
+        // First record seen for this monster
+        bestStatsPerMonster[hunt.monsterId] = { time: hunt.timeSeconds, date: huntDate };
+        bestHuntPerMonster[hunt.monsterId] = hunt.id;
+      } else {
+        if (hunt.timeSeconds < currentStats.time) {
+          // Strictly better time
+          bestStatsPerMonster[hunt.monsterId] = { time: hunt.timeSeconds, date: huntDate };
+          bestHuntPerMonster[hunt.monsterId] = hunt.id;
+        } else if (hunt.timeSeconds === currentStats.time) {
+          // Tie: Check if this one is newer
+          if (huntDate > currentStats.date) {
+            bestStatsPerMonster[hunt.monsterId] = { time: hunt.timeSeconds, date: huntDate };
+            bestHuntPerMonster[hunt.monsterId] = hunt.id;
+          }
+        }
       }
     });
 
     hunts.forEach(hunt => {
       const rank = getRank(hunt.timeSeconds);
-      // It is a Global Best Time if it matches the best time for this monster
-      const isGlobalBest = bestTimePerMonster[hunt.monsterId] === hunt.timeSeconds;
+      // It is a Global Best Time if this specific hunt ID is the recorded best for this monster
+      const isGlobalBest = bestHuntPerMonster[hunt.monsterId] === hunt.id;
       
       const points = getPoints(rank, isGlobalBest);
       const ws = weaponStats[hunt.weaponId];
@@ -170,7 +191,7 @@ export default function Dashboard() {
     // Filter out cases where best and worst are the same set (e.g. only 1 active weapon or all have same points)
     // But keep them if they are distinct groups
     
-    return { totalPoints, weaponStats: sortedWeapons, totalHunts: hunts.length, bestWeapons, worstWeapons, bestTimePerMonster };
+    return { totalPoints, weaponStats: sortedWeapons, totalHunts: hunts.length, bestWeapons, worstWeapons, bestHuntPerMonster };
   }, [hunts]);
 
   const handleAddHunt = () => {
@@ -400,7 +421,7 @@ export default function Dashboard() {
                                 <div className="flex items-center gap-2">
                                   <RankIcon rank={rank} className="w-4 h-4" />
                                   {/* Only show star if it is the Global Best for this monster */}
-                                  {stats.bestTimePerMonster[hunt.monsterId] === hunt.timeSeconds && (
+                                  {stats.bestHuntPerMonster[hunt.monsterId] === hunt.id && (
                                     <Star className="w-3 h-3 text-accent fill-accent" />
                                   )}
                                 </div>
