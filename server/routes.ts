@@ -33,12 +33,12 @@ export async function registerRoutes(
       const existing = await storage.getHunt(validatedData.monsterId, validatedData.weaponId, mode);
       
       if (existing) {
-        // Update existing hunt
+        // Update existing hunt - include fresh date
         const updated = await storage.updateHunt(
           validatedData.monsterId, 
           validatedData.weaponId,
           mode,
-          validatedData
+          { ...validatedData, date: new Date() }
         );
         res.json(updated);
       } else {

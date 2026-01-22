@@ -37,7 +37,7 @@ export class DatabaseStorage implements IStorage {
     return hunt;
   }
 
-  async updateHunt(monsterId: string, weaponId: string, mode: string, insertHunt: InsertHunt): Promise<Hunt> {
+  async updateHunt(monsterId: string, weaponId: string, mode: string, insertHunt: InsertHunt & { date?: Date }): Promise<Hunt> {
     const [hunt] = await db
       .update(hunts)
       .set(insertHunt)

@@ -7,7 +7,7 @@ import {
 } from "@/lib/mh-data";
 import { 
   Skull, Medal, Star, Diamond, 
-  Plus, Trophy, History, Swords,
+  Plus, Trophy, Swords,
   TrendingUp, TrendingDown, RotateCcw, Trash2, Undo2, Shuffle, Dices,
   User, Users, Users2
 } from "lucide-react";
@@ -64,8 +64,16 @@ const MODE_CONFIG = {
 export default function Dashboard() {
   const queryClient = useQueryClient();
 
-  // Mode State
-  const [mode, setMode] = useState<HuntMode>("solo");
+  // Mode State - persist in localStorage
+  const [mode, setMode] = useState<HuntMode>(() => {
+    const saved = localStorage.getItem("mhw-mode");
+    return (saved as HuntMode) || "solo";
+  });
+
+  // Persist mode changes
+  useEffect(() => {
+    localStorage.setItem("mhw-mode", mode);
+  }, [mode]);
 
   // Fetch hunts from API by mode
   const { data: hunts = [], isLoading } = useQuery({
@@ -93,11 +101,26 @@ export default function Dashboard() {
   const [timeInput, setTimeInput] = useState("");
   const [sortBy, setSortBy] = useState<"default" | "points" | "hunts">("default");
 
-  // Random Challenge State
+  // Random Challenge State - persist selections in localStorage
   const [isRandomOpen, setIsRandomOpen] = useState(false);
-  const [selectedRandomMonsters, setSelectedRandomMonsters] = useState<string[]>([]);
-  const [selectedRandomWeapons, setSelectedRandomWeapons] = useState<string[]>([]);
+  const [selectedRandomMonsters, setSelectedRandomMonsters] = useState<string[]>(() => {
+    const saved = localStorage.getItem("mhw-random-monsters");
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [selectedRandomWeapons, setSelectedRandomWeapons] = useState<string[]>(() => {
+    const saved = localStorage.getItem("mhw-random-weapons");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [randomResult, setRandomResult] = useState<{ monster: string, weapon: string } | null>(null);
+
+  // Persist random selections
+  useEffect(() => {
+    localStorage.setItem("mhw-random-monsters", JSON.stringify(selectedRandomMonsters));
+  }, [selectedRandomMonsters]);
+
+  useEffect(() => {
+    localStorage.setItem("mhw-random-weapons", JSON.stringify(selectedRandomWeapons));
+  }, [selectedRandomWeapons]);
 
   const handleRandomChallenge = () => {
     if (selectedRandomMonsters.length === 0 || selectedRandomWeapons.length === 0) return;
@@ -631,43 +654,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Right Column: Reference & Recent */}
+        {/* Right Column: Random Challenge & Scoring */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-display font-bold flex items-center gap-2">
-            <History className="w-6 h-6 text-primary" /> Recent Logs
-          </h2>
-          
-          <ScrollArea className="h-[400px] rounded-xl border border-white/5 bg-card/30 p-4">
-            <div className="space-y-3">
-              {hunts.slice(0, 10).map((hunt: HuntRecord) => {
-                 const monster = MONSTERS.find(m => m.id === hunt.monsterId)!;
-                 const weapon = WEAPONS.find(w => w.id === hunt.weaponId)!;
-                 const rank = getRank(hunt.timeSeconds);
-                 
-                 return (
-                   <div key={hunt.id} className="flex items-center justify-between bg-black/20 p-3 rounded-lg border border-white/5">
-                     <div className="flex items-center gap-3">
-                       <div className={cn("p-2 rounded-md bg-white/5", monster.color)}>
-                         <monster.icon className="w-5 h-5" />
-                       </div>
-                       <div>
-                         <div className="text-sm font-bold text-slate-200">{monster.name}</div>
-                         <div className="text-xs text-muted-foreground">{weapon.name}</div>
-                       </div>
-                     </div>
-                     <div className="text-right">
-                       <div className="font-mono font-bold text-primary">{formatTime(hunt.timeSeconds)}</div>
-                       <div className="flex justify-end items-center gap-1 mt-1">
-                         <RankIcon rank={rank} className="w-3 h-3" />
-                         {hunt.isPb && <Star className="w-3 h-3 text-accent" />}
-                       </div>
-                     </div>
-                   </div>
-                 );
-              })}
-            </div>
-          </ScrollArea>
-
           {/* Random Challenge Card */}
           <Card className="bg-gradient-to-br from-card/60 to-purple-500/10 border-purple-500/20">
             <CardHeader className="pb-2">
@@ -730,20 +718,33 @@ export default function Dashboard() {
                           })()}
                         </div>
                         
-                        <div className="flex gap-3 mt-6">
+                        <div className="flex flex-col gap-3 mt-6">
                           <Button 
-                            onClick={() => setRandomResult(null)} 
-                            variant="outline"
-                            className="flex-1 border-white/10 hover:bg-white/5"
+                            onClick={() => {
+                              setSelectedMonster(randomResult.monster);
+                              setSelectedWeapon(randomResult.weapon);
+                              setIsRandomOpen(false);
+                              setIsAddOpen(true);
+                            }} 
+                            className="w-full bg-primary hover:bg-primary/90 text-background font-bold"
                           >
-                            Back
+                            <Plus className="w-4 h-4 mr-2" /> Log Time
                           </Button>
-                          <Button 
-                            onClick={handleRandomChallenge} 
-                            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold"
-                          >
-                            <Dices className="w-4 h-4 mr-2" /> Roll Again
-                          </Button>
+                          <div className="flex gap-3">
+                            <Button 
+                              onClick={() => setRandomResult(null)} 
+                              variant="outline"
+                              className="flex-1 border-white/10 hover:bg-white/5"
+                            >
+                              Back
+                            </Button>
+                            <Button 
+                              onClick={handleRandomChallenge} 
+                              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold"
+                            >
+                              <Dices className="w-4 h-4 mr-2" /> Roll Again
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ) : (
