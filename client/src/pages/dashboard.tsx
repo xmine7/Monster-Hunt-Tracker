@@ -83,8 +83,8 @@ export default function Dashboard() {
 
   // Random Challenge State
   const [isRandomOpen, setIsRandomOpen] = useState(false);
-  const [selectedRandomMonsters, setSelectedRandomMonsters] = useState<string[]>(MONSTERS.map(m => m.id));
-  const [selectedRandomWeapons, setSelectedRandomWeapons] = useState<string[]>(WEAPONS.map(w => w.id));
+  const [selectedRandomMonsters, setSelectedRandomMonsters] = useState<string[]>([]);
+  const [selectedRandomWeapons, setSelectedRandomWeapons] = useState<string[]>([]);
   const [randomResult, setRandomResult] = useState<{ monster: string, weapon: string } | null>(null);
 
   const handleRandomChallenge = () => {
