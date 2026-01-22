@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   MONSTERS, WEAPONS, INITIAL_HUNTS, 
   getRank, getPoints, formatTime, parseTime, 
@@ -52,27 +53,22 @@ function RankIcon({ rank, className }: { rank: Rank, className?: string }) {
 }
 
 export default function Dashboard() {
-  // Load from local storage or use initial
-  const [hunts, setHunts] = useState<HuntRecord[]>(() => {
-    const saved = localStorage.getItem("mhw-hunts");
-    if (saved) {
-      try {
-        // Parse dates back to Date objects
-        return JSON.parse(saved, (key, value) => 
-          key === 'date' ? new Date(value) : value
-        );
-      } catch (e) {
-        console.error("Failed to parse local storage", e);
-        return INITIAL_HUNTS;
-      }
-    }
-    return INITIAL_HUNTS;
-  });
+  const queryClient = useQueryClient();
 
-  // Save to local storage whenever hunts change
-  useEffect(() => {
-    localStorage.setItem("mhw-hunts", JSON.stringify(hunts));
-  }, [hunts]);
+  // Fetch hunts from API
+  const { data: hunts = [], isLoading } = useQuery({
+    queryKey: ["hunts"],
+    queryFn: async () => {
+      const response = await fetch("/api/hunts");
+      if (!response.ok) throw new Error("Failed to fetch hunts");
+      const data = await response.json();
+      // Parse dates
+      return data.map((hunt: any) => ({
+        ...hunt,
+        date: new Date(hunt.date),
+      }));
+    },
+  });
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   
@@ -84,6 +80,35 @@ export default function Dashboard() {
   const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0].id);
   const [timeInput, setTimeInput] = useState("");
   const [sortBy, setSortBy] = useState<"default" | "points" | "hunts">("default");
+
+  // Mutations
+  const addHuntMutation = useMutation({
+    mutationFn: async (hunt: Omit<HuntRecord, "id" | "date">) => {
+      const response = await fetch("/api/hunts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(hunt),
+      });
+      if (!response.ok) throw new Error("Failed to add hunt");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["hunts"] });
+    },
+  });
+
+  const resetHuntsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/hunts", {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to reset hunts");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["hunts"] });
+    },
+  });
 
   const stats = useMemo(() => {
     const weaponStats: Record<string, { points: number, hunts: number, attempts: number, gold: number, silver: number, bronze: number, skull: number, star: number, lastHuntDate: number }> = {};
@@ -100,7 +125,7 @@ export default function Dashboard() {
     const bestHuntPerMonster: Record<string, string> = {}; // monsterId -> huntId
     const bestStatsPerMonster: Record<string, { time: number, date: number }> = {};
 
-    hunts.forEach(hunt => {
+    hunts.forEach((hunt: HuntRecord) => {
       const currentStats = bestStatsPerMonster[hunt.monsterId];
       const huntDate = new Date(hunt.date).getTime();
 
@@ -123,7 +148,7 @@ export default function Dashboard() {
       }
     });
 
-    hunts.forEach(hunt => {
+    hunts.forEach((hunt: HuntRecord) => {
       const rank = getRank(hunt.timeSeconds);
       // It is a Global Best Time if this specific hunt ID is the recorded best for this monster
       const isGlobalBest = bestHuntPerMonster[hunt.monsterId] === hunt.id;
@@ -227,10 +252,10 @@ export default function Dashboard() {
     // (Active Weapons * 15) + (Number of Unique Monsters Hunted)
     // The bonus star points are only "available" to be earned once a monster has been attempted.
     const activeWeaponCount = sortedWeapons.filter(w => w.hunts > 0).length;
-    const uniqueMonstersHunted = new Set(hunts.map(h => h.monsterId)).size;
+    const uniqueMonstersHunted = new Set(hunts.map((h: HuntRecord) => h.monsterId)).size;
     const maxPossiblePoints = (activeWeaponCount * 15) + uniqueMonstersHunted;
     
-    const totalAttempts = hunts.reduce((acc, hunt) => acc + (hunt.attempts || 1), 0);
+    const totalAttempts = hunts.reduce((acc: number, hunt: HuntRecord) => acc + (hunt.attempts || 1), 0);
 
     return { totalPoints, maxPossiblePoints, weaponStats: sortedWeapons, totalHunts: totalAttempts, bestWeapons, worstWeapons, bestHuntPerMonster };
   }, [hunts, sortBy]);
@@ -240,33 +265,19 @@ export default function Dashboard() {
     if (!time) return;
 
     // Check if a record already exists for this monster/weapon
-    const existingHuntIndex = hunts.findIndex(
-      h => h.monsterId === selectedMonster && h.weaponId === selectedWeapon
+    const existingHunt = hunts.find(
+      (h: HuntRecord) => h.monsterId === selectedMonster && h.weaponId === selectedWeapon
     );
 
-    const newHunt: HuntRecord = {
-      id: existingHuntIndex !== -1 ? hunts[existingHuntIndex].id : Math.random().toString(),
+    // Save to history before modifying
+    setHistory((h: HuntRecord[][]) => [...h, hunts]);
+
+    addHuntMutation.mutate({
       monsterId: selectedMonster,
       weaponId: selectedWeapon,
       timeSeconds: time,
-      isPb: true, // If it's the only entry, it's the PB
-      date: new Date(),
-      attempts: existingHuntIndex !== -1 ? (hunts[existingHuntIndex].attempts || 1) + 1 : 1
-    };
-
-    setHunts(prev => {
-      // Save to history before modifying
-      setHistory(h => [...h, prev]);
-      
-      const newHunts = [...prev];
-      if (existingHuntIndex !== -1) {
-        // Update existing
-        newHunts[existingHuntIndex] = newHunt;
-      } else {
-        // Add new
-        newHunts.unshift(newHunt);
-      }
-      return newHunts;
+      isPb: true,
+      attempts: existingHunt ? (existingHunt.attempts || 1) + 1 : 1,
     });
 
     setIsAddOpen(false);
@@ -276,15 +287,37 @@ export default function Dashboard() {
   const handleUndo = () => {
     if (history.length === 0) return;
     const previous = history[history.length - 1];
-    setHunts(previous);
-    setHistory(h => h.slice(0, -1));
+    
+    // Clear current database and restore previous state
+    resetHuntsMutation.mutate(undefined, {
+      onSuccess: async () => {
+        // Re-add all previous hunts
+        for (const hunt of previous) {
+          await addHuntMutation.mutateAsync({
+            monsterId: hunt.monsterId,
+            weaponId: hunt.weaponId,
+            timeSeconds: hunt.timeSeconds,
+            isPb: hunt.isPb,
+            attempts: hunt.attempts || 1,
+          });
+        }
+        setHistory((h: HuntRecord[][]) => h.slice(0, -1));
+      }
+    });
   };
 
   const handleReset = () => {
-    setHistory(h => [...h, hunts]); // Save current state before reset
-    setHunts(INITIAL_HUNTS);
-    localStorage.removeItem("mhw-hunts");
+    setHistory((h: HuntRecord[][]) => [...h, hunts]); // Save current state before reset
+    resetHuntsMutation.mutate();
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        Loading your hunts...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4 md:p-8 space-y-8 font-sans text-slate-200">
@@ -485,16 +518,16 @@ export default function Dashboard() {
                     
                     {/* Personal Bests List for this weapon */}
                     <div className="space-y-1 mt-2 border-t border-white/5 pt-2 min-h-[20px]">
-                      {hunts.filter(h => h.weaponId === weapon.id && h.isPb).length > 0 ? (
+                      {hunts.filter((h: HuntRecord) => h.weaponId === weapon.id && h.isPb).length > 0 ? (
                         hunts
-                          .filter(h => h.weaponId === weapon.id && h.isPb)
+                          .filter((h: HuntRecord) => h.weaponId === weapon.id && h.isPb)
                           // Sort PBs by monster order
-                          .sort((a, b) => {
+                          .sort((a: HuntRecord, b: HuntRecord) => {
                             const aIndex = MONSTERS.findIndex(m => m.id === a.monsterId);
                             const bIndex = MONSTERS.findIndex(m => m.id === b.monsterId);
                             return aIndex - bIndex;
                           })
-                          .map(hunt => {
+                          .map((hunt: HuntRecord) => {
                             const monster = MONSTERS.find(m => m.id === hunt.monsterId)!;
                             const rank = getRank(hunt.timeSeconds);
                             return (
@@ -535,7 +568,7 @@ export default function Dashboard() {
           
           <ScrollArea className="h-[400px] rounded-xl border border-white/5 bg-card/30 p-4">
             <div className="space-y-3">
-              {hunts.slice(0, 10).map((hunt) => {
+              {hunts.slice(0, 10).map((hunt: HuntRecord) => {
                  const monster = MONSTERS.find(m => m.id === hunt.monsterId)!;
                  const weapon = WEAPONS.find(w => w.id === hunt.weaponId)!;
                  const rank = getRank(hunt.timeSeconds);

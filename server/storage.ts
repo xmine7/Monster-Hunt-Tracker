@@ -1,38 +1,48 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { hunts, type Hunt, type InsertHunt } from "@shared/schema";
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getAllHunts(): Promise<Hunt[]>;
+  getHunt(monsterId: string, weaponId: string): Promise<Hunt | undefined>;
+  createHunt(hunt: InsertHunt): Promise<Hunt>;
+  updateHunt(monsterId: string, weaponId: string, hunt: InsertHunt): Promise<Hunt>;
+  deleteAllHunts(): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  async getAllHunts(): Promise<Hunt[]> {
+    return await db.select().from(hunts);
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getHunt(monsterId: string, weaponId: string): Promise<Hunt | undefined> {
+    const [hunt] = await db
+      .select()
+      .from(hunts)
+      .where(and(eq(hunts.monsterId, monsterId), eq(hunts.weaponId, weaponId)));
+    return hunt || undefined;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async createHunt(insertHunt: InsertHunt): Promise<Hunt> {
+    const [hunt] = await db
+      .insert(hunts)
+      .values(insertHunt)
+      .returning();
+    return hunt;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async updateHunt(monsterId: string, weaponId: string, insertHunt: InsertHunt): Promise<Hunt> {
+    const [hunt] = await db
+      .update(hunts)
+      .set(insertHunt)
+      .where(and(eq(hunts.monsterId, monsterId), eq(hunts.weaponId, weaponId)))
+      .returning();
+    return hunt;
+  }
+
+  async deleteAllHunts(): Promise<void> {
+    await db.delete(hunts);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
