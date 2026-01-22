@@ -196,8 +196,10 @@ export default function Dashboard() {
     // (Active Weapons * 15) + 5 (Bonus Stars)
     const activeWeaponCount = sortedWeapons.filter(w => w.hunts > 0).length;
     const maxPossiblePoints = (activeWeaponCount * 15) + 5;
+    
+    const totalAttempts = hunts.reduce((acc, hunt) => acc + (hunt.attempts || 1), 0);
 
-    return { totalPoints, maxPossiblePoints, weaponStats: sortedWeapons, totalHunts: hunts.length, bestWeapons, worstWeapons, bestHuntPerMonster };
+    return { totalPoints, maxPossiblePoints, weaponStats: sortedWeapons, totalHunts: totalAttempts, bestWeapons, worstWeapons, bestHuntPerMonster };
   }, [hunts]);
 
   const handleAddHunt = () => {
