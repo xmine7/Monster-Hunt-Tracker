@@ -90,16 +90,27 @@ export default function Dashboard() {
       weaponStats[w.id] = { points: 0, hunts: 0, gold: 0, silver: 0, bronze: 0, skull: 0, star: 0, lastHuntDate: 0 };
     });
 
+    // Calculate Best Time per Monster (across ALL weapons)
+    const bestTimePerMonster: Record<string, number> = {};
+    hunts.forEach(hunt => {
+      if (!bestTimePerMonster[hunt.monsterId] || hunt.timeSeconds < bestTimePerMonster[hunt.monsterId]) {
+        bestTimePerMonster[hunt.monsterId] = hunt.timeSeconds;
+      }
+    });
+
     hunts.forEach(hunt => {
       const rank = getRank(hunt.timeSeconds);
-      const points = getPoints(rank, hunt.isPb);
+      // It is a Global Best Time if it matches the best time for this monster
+      const isGlobalBest = bestTimePerMonster[hunt.monsterId] === hunt.timeSeconds;
+      
+      const points = getPoints(rank, isGlobalBest);
       const ws = weaponStats[hunt.weaponId];
       
       if (ws) {
         ws.points += points;
         ws.hunts += 1;
         ws[rank]++;
-        if (hunt.isPb) ws.star++;
+        if (isGlobalBest) ws.star++;
         
         // Track the most recent hunt time for this weapon
         const huntTime = new Date(hunt.date).getTime();
@@ -139,7 +150,7 @@ export default function Dashboard() {
     const bestWeapon = activeWeapons.length > 0 ? activeWeapons[0] : null;
     const worstWeapon = activeWeapons.length > 0 ? activeWeapons[activeWeapons.length - 1] : null;
 
-    return { totalPoints, weaponStats: sortedWeapons, totalHunts: hunts.length, bestWeapon, worstWeapon };
+    return { totalPoints, weaponStats: sortedWeapons, totalHunts: hunts.length, bestWeapon, worstWeapon, bestTimePerMonster };
   }, [hunts]);
 
   const handleAddHunt = () => {
@@ -365,7 +376,10 @@ export default function Dashboard() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <RankIcon rank={rank} className="w-4 h-4" />
-                                  {hunt.isPb && <Star className="w-3 h-3 text-accent fill-accent" />}
+                                  {/* Only show star if it is the Global Best for this monster */}
+                                  {stats.bestTimePerMonster[hunt.monsterId] === hunt.timeSeconds && (
+                                    <Star className="w-3 h-3 text-accent fill-accent" />
+                                  )}
                                 </div>
                               </div>
                             );
