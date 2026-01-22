@@ -82,12 +82,12 @@ export default function Dashboard() {
   const [timeInput, setTimeInput] = useState("");
 
   const stats = useMemo(() => {
-    const weaponStats: Record<string, { points: number, hunts: number, gold: number, silver: number, bronze: number, skull: number, star: number, lastHuntDate: number }> = {};
+    const weaponStats: Record<string, { points: number, hunts: number, attempts: number, gold: number, silver: number, bronze: number, skull: number, star: number, lastHuntDate: number }> = {};
     let totalPoints = 0;
     
     // Initialize
     WEAPONS.forEach(w => {
-      weaponStats[w.id] = { points: 0, hunts: 0, gold: 0, silver: 0, bronze: 0, skull: 0, star: 0, lastHuntDate: 0 };
+      weaponStats[w.id] = { points: 0, hunts: 0, attempts: 0, gold: 0, silver: 0, bronze: 0, skull: 0, star: 0, lastHuntDate: 0 };
     });
 
     // Calculate Best Time per Monster (across ALL weapons)
@@ -130,6 +130,7 @@ export default function Dashboard() {
       if (ws) {
         ws.points += points;
         ws.hunts += 1;
+        ws.attempts += (hunt.attempts || 1);
         ws[rank]++;
         if (isGlobalBest) ws.star++;
         
@@ -214,7 +215,8 @@ export default function Dashboard() {
       weaponId: selectedWeapon,
       timeSeconds: time,
       isPb: true, // If it's the only entry, it's the PB
-      date: new Date()
+      date: new Date(),
+      attempts: existingHuntIndex !== -1 ? (hunts[existingHuntIndex].attempts || 1) + 1 : 1
     };
 
     setHunts(prev => {
@@ -390,7 +392,7 @@ export default function Dashboard() {
                         {weaponName}
                         {weapon.hunts > 0 && (
                           <Badge variant="outline" className="ml-2 bg-white/5 border-white/10 text-xs">
-                            {weapon.hunts} Hunts
+                            {weapon.hunts} Clears <span className="text-muted-foreground ml-1">({weapon.attempts} Attempts)</span>
                           </Badge>
                         )}
                       </CardTitle>
@@ -423,8 +425,10 @@ export default function Dashboard() {
                               <div key={hunt.id} className="flex items-center justify-between text-sm py-1">
                                 <div className="flex items-center gap-2 text-slate-300">
                                   <monster.icon className={cn("w-4 h-4", monster.color)} />
-                                  <span className="text-xs uppercase tracking-wide opacity-70">PB</span>
-                                  <span className="font-mono">{formatTime(hunt.timeSeconds)}</span>
+                                  <div className="flex flex-col leading-none">
+                                    <span className="text-[10px] uppercase tracking-wide opacity-50 mb-0.5">PB (Run #{hunt.attempts || 1})</span>
+                                    <span className="font-mono">{formatTime(hunt.timeSeconds)}</span>
+                                  </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <RankIcon rank={rank} className="w-4 h-4" />

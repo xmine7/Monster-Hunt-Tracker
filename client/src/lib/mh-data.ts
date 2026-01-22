@@ -21,6 +21,7 @@ export interface HuntRecord {
   timeSeconds: number; // Stored in seconds for easy calc
   isPb: boolean;
   date: Date;
+  attempts?: number;
 }
 
 export const MONSTERS: Monster[] = [
