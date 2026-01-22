@@ -7,11 +7,17 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Get all hunts
+  // Get hunts by mode
   app.get("/api/hunts", async (req, res) => {
     try {
-      const hunts = await storage.getAllHunts();
-      res.json(hunts);
+      const mode = req.query.mode as string;
+      if (mode) {
+        const hunts = await storage.getHuntsByMode(mode);
+        res.json(hunts);
+      } else {
+        const hunts = await storage.getAllHunts();
+        res.json(hunts);
+      }
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch hunts" });
     }
@@ -21,15 +27,17 @@ export async function registerRoutes(
   app.post("/api/hunts", async (req, res) => {
     try {
       const validatedData = insertHuntSchema.parse(req.body);
+      const mode = validatedData.mode || "solo";
       
-      // Check if hunt already exists for this monster/weapon combo
-      const existing = await storage.getHunt(validatedData.monsterId, validatedData.weaponId);
+      // Check if hunt already exists for this monster/weapon/mode combo
+      const existing = await storage.getHunt(validatedData.monsterId, validatedData.weaponId, mode);
       
       if (existing) {
         // Update existing hunt
         const updated = await storage.updateHunt(
           validatedData.monsterId, 
-          validatedData.weaponId, 
+          validatedData.weaponId,
+          mode,
           validatedData
         );
         res.json(updated);
@@ -43,10 +51,15 @@ export async function registerRoutes(
     }
   });
 
-  // Reset all hunts
+  // Reset hunts (optionally by mode)
   app.delete("/api/hunts", async (req, res) => {
     try {
-      await storage.deleteAllHunts();
+      const mode = req.query.mode as string;
+      if (mode) {
+        await storage.deleteHuntsByMode(mode);
+      } else {
+        await storage.deleteAllHunts();
+      }
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: "Failed to reset hunts" });

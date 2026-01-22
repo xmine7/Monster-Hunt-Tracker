@@ -11,6 +11,7 @@ export const hunts = pgTable("hunts", {
   isPb: boolean("is_pb").notNull().default(true),
   date: timestamp("date").notNull().defaultNow(),
   attempts: integer("attempts").notNull().default(1),
+  mode: text("mode").notNull().default("solo"),
 });
 
 export const insertHuntSchema = createInsertSchema(hunts).omit({
@@ -20,3 +21,4 @@ export const insertHuntSchema = createInsertSchema(hunts).omit({
 
 export type InsertHunt = z.infer<typeof insertHuntSchema>;
 export type Hunt = typeof hunts.$inferSelect;
+export type HuntMode = "solo" | "duo" | "squad";

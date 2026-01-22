@@ -4,9 +4,11 @@ import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   getAllHunts(): Promise<Hunt[]>;
-  getHunt(monsterId: string, weaponId: string): Promise<Hunt | undefined>;
+  getHuntsByMode(mode: string): Promise<Hunt[]>;
+  getHunt(monsterId: string, weaponId: string, mode: string): Promise<Hunt | undefined>;
   createHunt(hunt: InsertHunt): Promise<Hunt>;
-  updateHunt(monsterId: string, weaponId: string, hunt: InsertHunt): Promise<Hunt>;
+  updateHunt(monsterId: string, weaponId: string, mode: string, hunt: InsertHunt): Promise<Hunt>;
+  deleteHuntsByMode(mode: string): Promise<void>;
   deleteAllHunts(): Promise<void>;
 }
 
@@ -15,11 +17,15 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(hunts);
   }
 
-  async getHunt(monsterId: string, weaponId: string): Promise<Hunt | undefined> {
+  async getHuntsByMode(mode: string): Promise<Hunt[]> {
+    return await db.select().from(hunts).where(eq(hunts.mode, mode));
+  }
+
+  async getHunt(monsterId: string, weaponId: string, mode: string): Promise<Hunt | undefined> {
     const [hunt] = await db
       .select()
       .from(hunts)
-      .where(and(eq(hunts.monsterId, monsterId), eq(hunts.weaponId, weaponId)));
+      .where(and(eq(hunts.monsterId, monsterId), eq(hunts.weaponId, weaponId), eq(hunts.mode, mode)));
     return hunt || undefined;
   }
 
@@ -31,13 +37,17 @@ export class DatabaseStorage implements IStorage {
     return hunt;
   }
 
-  async updateHunt(monsterId: string, weaponId: string, insertHunt: InsertHunt): Promise<Hunt> {
+  async updateHunt(monsterId: string, weaponId: string, mode: string, insertHunt: InsertHunt): Promise<Hunt> {
     const [hunt] = await db
       .update(hunts)
       .set(insertHunt)
-      .where(and(eq(hunts.monsterId, monsterId), eq(hunts.weaponId, weaponId)))
+      .where(and(eq(hunts.monsterId, monsterId), eq(hunts.weaponId, weaponId), eq(hunts.mode, mode)))
       .returning();
     return hunt;
+  }
+
+  async deleteHuntsByMode(mode: string): Promise<void> {
+    await db.delete(hunts).where(eq(hunts.mode, mode));
   }
 
   async deleteAllHunts(): Promise<void> {

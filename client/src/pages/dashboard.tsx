@@ -8,7 +8,8 @@ import {
 import { 
   Skull, Medal, Star, Diamond, 
   Plus, Trophy, History, Swords,
-  TrendingUp, TrendingDown, RotateCcw, Trash2, Undo2, Shuffle, Dices
+  TrendingUp, TrendingDown, RotateCcw, Trash2, Undo2, Shuffle, Dices,
+  User, Users, Users2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,14 +53,25 @@ function RankIcon({ rank, className }: { rank: Rank, className?: string }) {
   }
 }
 
+type HuntMode = "solo" | "duo" | "squad";
+
+const MODE_CONFIG = {
+  solo: { label: "Solo", icon: User, description: "1 Player" },
+  duo: { label: "Duo", icon: Users, description: "2 Players" },
+  squad: { label: "Squad", icon: Users2, description: "4 Players" },
+};
+
 export default function Dashboard() {
   const queryClient = useQueryClient();
 
-  // Fetch hunts from API
+  // Mode State
+  const [mode, setMode] = useState<HuntMode>("solo");
+
+  // Fetch hunts from API by mode
   const { data: hunts = [], isLoading } = useQuery({
-    queryKey: ["hunts"],
+    queryKey: ["hunts", mode],
     queryFn: async () => {
-      const response = await fetch("/api/hunts");
+      const response = await fetch(`/api/hunts?mode=${mode}`);
       if (!response.ok) throw new Error("Failed to fetch hunts");
       const data = await response.json();
       // Parse dates
@@ -114,7 +126,7 @@ export default function Dashboard() {
 
   // Mutations
   const addHuntMutation = useMutation({
-    mutationFn: async (hunt: Omit<HuntRecord, "id" | "date">) => {
+    mutationFn: async (hunt: Omit<HuntRecord, "id" | "date"> & { mode: HuntMode }) => {
       const response = await fetch("/api/hunts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -124,20 +136,20 @@ export default function Dashboard() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["hunts"] });
+      queryClient.invalidateQueries({ queryKey: ["hunts", mode] });
     },
   });
 
   const resetHuntsMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/hunts", {
+      const response = await fetch(`/api/hunts?mode=${mode}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to reset hunts");
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["hunts"] });
+      queryClient.invalidateQueries({ queryKey: ["hunts", mode] });
     },
   });
 
@@ -309,6 +321,7 @@ export default function Dashboard() {
       timeSeconds: time,
       isPb: true,
       attempts: existingHunt ? (existingHunt.attempts || 1) + 1 : 1,
+      mode: mode,
     });
 
     setIsAddOpen(false);
@@ -330,6 +343,7 @@ export default function Dashboard() {
             timeSeconds: hunt.timeSeconds,
             isPb: hunt.isPb,
             attempts: hunt.attempts || 1,
+            mode: mode,
           });
         }
         setHistory((h: HuntRecord[][]) => h.slice(0, -1));
@@ -360,7 +374,7 @@ export default function Dashboard() {
           </h1>
           <p className="text-muted-foreground flex items-center gap-2">
             <Trophy className="w-4 h-4" /> 
-            World Solo Speedrun Tracker
+            World Speedrun Tracker
           </p>
         </div>
         
@@ -382,6 +396,32 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
+
+      {/* Mode Tabs */}
+      <div className="flex justify-center">
+        <div className="inline-flex bg-card/50 backdrop-blur-md rounded-xl p-1.5 border border-white/5">
+          {(["solo", "duo", "squad"] as HuntMode[]).map((m) => {
+            const config = MODE_CONFIG[m];
+            const Icon = config.icon;
+            const isActive = mode === m;
+            return (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={cn(
+                  "flex items-center gap-2 px-6 py-3 rounded-lg font-bold uppercase tracking-wide transition-all",
+                  isActive
+                    ? "bg-primary text-background"
+                    : "text-muted-foreground hover:text-white hover:bg-white/5"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{config.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Stats Highlights */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
