@@ -314,12 +314,11 @@ export default function Dashboard() {
     // Filter out cases where best and worst are the same set (e.g. only 1 active weapon or all have same points)
     // But keep them if they are distinct groups
     
-    // Calculate Max Possible Points
-    // (Active Weapons * 15) + (Number of Unique Monsters Hunted)
-    // The bonus star points are only "available" to be earned once a monster has been attempted.
-    const activeWeaponCount = sortedWeapons.filter(w => w.hunts > 0).length;
+    // Calculate Max Possible Points based on actual hunts logged
+    // Each hunt can earn max 3 points (gold) + 1 star bonus per unique monster
+    const totalHuntsLogged = hunts.length;
     const uniqueMonstersHunted = new Set(hunts.map((h: HuntRecord) => h.monsterId)).size;
-    const maxPossiblePoints = (activeWeaponCount * 15) + uniqueMonstersHunted;
+    const maxPossiblePoints = (totalHuntsLogged * 3) + uniqueMonstersHunted;
     
     const totalAttempts = hunts.reduce((acc: number, hunt: HuntRecord) => acc + (hunt.attempts || 1), 0);
 
