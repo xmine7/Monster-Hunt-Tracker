@@ -83,6 +83,7 @@ export default function Dashboard() {
   const [selectedMonster, setSelectedMonster] = useState(MONSTERS[0].id);
   const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0].id);
   const [timeInput, setTimeInput] = useState("");
+  const [timeWarning, setTimeWarning] = useState("");
   const [sortBy, setSortBy] = useState<"default" | "points" | "hunts">("default");
 
   // Random Challenge State - persist selections in localStorage
@@ -318,6 +319,14 @@ export default function Dashboard() {
       (h: HuntRecord) => h.monsterId === selectedMonster && h.weaponId === selectedWeapon
     );
 
+    // Don't save if new time is worse than existing PB
+    if (existingHunt && time >= existingHunt.timeSeconds) {
+      setTimeWarning(`Not saved — your current PB is ${formatTime(existingHunt.timeSeconds)}. Only better times are recorded.`);
+      return;
+    }
+
+    setTimeWarning("");
+
     // Save to history before modifying
     setHistory((h: HuntRecord[][]) => [...h, hunts]);
 
@@ -467,7 +476,7 @@ export default function Dashboard() {
                 </SelectContent>
               </Select>
 
-              <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+              <Dialog open={isAddOpen} onOpenChange={(open) => { setIsAddOpen(open); if (!open) { setTimeWarning(""); setTimeInput(""); } }}>
                 <DialogTrigger asChild>
                   <Button className="bg-primary text-background hover:bg-primary/90 font-display font-bold tracking-wider h-9">
                     <Plus className="w-4 h-4 mr-2" /> Log Hunt
@@ -513,10 +522,15 @@ export default function Dashboard() {
                     <Input 
                       placeholder="e.g. 14:24" 
                       value={timeInput}
-                      onChange={(e) => setTimeInput(e.target.value)}
+                      onChange={(e) => { setTimeInput(e.target.value); setTimeWarning(""); }}
                       className="bg-background/50 border-white/10 font-mono"
                     />
                   </div>
+                  {timeWarning && (
+                    <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded px-3 py-2">
+                      {timeWarning}
+                    </p>
+                  )}
                   <Button onClick={handleAddHunt} className="w-full bg-primary text-background font-bold">
                     Add Entry
                   </Button>
