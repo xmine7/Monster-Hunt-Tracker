@@ -576,42 +576,37 @@ export default function Dashboard() {
                       <div className="flex items-center gap-1"><Star className="w-4 h-4 text-accent fill-accent/20" /> {weapon.star}</div>
                     </div>
                     
-                    {/* Personal Bests List for this weapon */}
-                    <div className="space-y-1 mt-2 border-t border-white/5 pt-2 min-h-[20px]">
-                      {hunts.filter((h: HuntRecord) => h.weaponId === weapon.id && h.isPb).length > 0 ? (
-                        hunts
-                          .filter((h: HuntRecord) => h.weaponId === weapon.id && h.isPb)
-                          // Sort PBs by monster order
-                          .sort((a: HuntRecord, b: HuntRecord) => {
-                            const aIndex = MONSTERS.findIndex(m => m.id === a.monsterId);
-                            const bIndex = MONSTERS.findIndex(m => m.id === b.monsterId);
-                            return aIndex - bIndex;
-                          })
-                          .map((hunt: HuntRecord) => {
-                            const monster = MONSTERS.find(m => m.id === hunt.monsterId)!;
-                            const rank = getRank(hunt.timeSeconds);
-                            return (
-                              <div key={hunt.id} className="flex items-center justify-between text-sm py-1">
-                                <div className="flex items-center gap-2 text-slate-300">
-                                  <monster.icon className={cn("w-4 h-4", monster.color)} />
-                                  <div className="flex flex-col leading-none">
+                    {/* Personal Bests List for this weapon — always show all monsters */}
+                    <div className="space-y-1 mt-2 border-t border-white/5 pt-2">
+                      {MONSTERS.map((monster) => {
+                        const hunt = hunts.find(
+                          (h: HuntRecord) => h.weaponId === weapon.id && h.monsterId === monster.id && h.isPb
+                        );
+                        const rank = hunt ? getRank(hunt.timeSeconds) : null;
+                        return (
+                          <div key={monster.id} className="flex items-center justify-between text-sm py-1">
+                            <div className="flex items-center gap-2">
+                              <monster.icon className={cn("w-4 h-4", hunt ? monster.color : "text-muted-foreground/40")} />
+                              <div className="flex flex-col leading-none">
+                                {hunt ? (
+                                  <>
                                     <span className="text-[10px] uppercase tracking-wide opacity-50 mb-0.5">PB (Run #{hunt.attempts || 1})</span>
-                                    <span className="font-mono">{formatTime(hunt.timeSeconds)}</span>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <RankIcon rank={rank} className="w-4 h-4" />
-                                  {/* Only show star if it is the Global Best for this monster */}
-                                  {stats.bestHuntPerMonster[hunt.monsterId] === hunt.id && (
-                                    <Star className="w-3 h-3 text-accent fill-accent" />
-                                  )}
-                                </div>
+                                    <span className="font-mono text-slate-300">{formatTime(hunt.timeSeconds)}</span>
+                                  </>
+                                ) : (
+                                  <span className="font-mono text-muted-foreground/40 italic text-xs">tbd</span>
+                                )}
                               </div>
-                            );
-                          })
-                      ) : (
-                        <div className="text-xs text-muted-foreground py-1 italic">No records yet</div>
-                      )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {rank && <RankIcon rank={rank} className="w-4 h-4" />}
+                              {hunt && stats.bestHuntPerMonster[hunt.monsterId] === hunt.id && (
+                                <Star className="w-3 h-3 text-accent fill-accent" />
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
