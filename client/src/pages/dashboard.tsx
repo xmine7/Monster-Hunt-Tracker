@@ -553,11 +553,6 @@ export default function Dashboard() {
                     <div className="flex justify-between items-center">
                       <CardTitle className="font-display text-xl text-white flex items-center gap-2">
                         {weaponName}
-                        {weapon.hunts > 0 && (
-                          <Badge variant="outline" className="ml-2 bg-white/5 border-white/10 text-xs">
-                            {weapon.attempts} Hunts
-                          </Badge>
-                        )}
                       </CardTitle>
                       <div className={cn(
                         "flex items-center gap-1 font-bold font-mono text-lg",
@@ -590,7 +585,6 @@ export default function Dashboard() {
                               <div className="flex flex-col leading-none">
                                 {hunt ? (
                                   <>
-                                    <span className="text-[10px] uppercase tracking-wide opacity-50 mb-0.5">PB (Run #{hunt.attempts || 1})</span>
                                     <span className="font-mono text-slate-300">{formatTime(hunt.timeSeconds)}</span>
                                   </>
                                 ) : (
