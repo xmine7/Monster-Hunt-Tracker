@@ -1,4 +1,4 @@
-import { LucideIcon, Skull, Medal, Star, Diamond, Zap, Flame, Snowflake, Droplets } from "lucide-react";
+import { LucideIcon, Skull, Medal, Star, Diamond, Zap, Flame, Snowflake, Circle } from "lucide-react";
 
 export type Rank = "gold" | "silver" | "bronze" | "skull";
 
@@ -28,7 +28,7 @@ export const MONSTERS: Monster[] = [
   { id: "fatalis", name: "Fatalis", icon: Flame, color: "text-red-500" },
   { id: "velkhana", name: "Arch Tempered Velkhana", icon: Snowflake, color: "text-blue-300" },
   { id: "alatreon", name: "Alatreon", icon: Zap, color: "text-yellow-400" },
-  { id: "namielle", name: "Arch Tempered Namielle", icon: Droplets, color: "text-blue-400" },
+  { id: "nergigante", name: "Tempered Nergigante", icon: Circle, color: "text-gray-400" },
   { id: "kulve", name: "Kulve Taroth", icon: Diamond, color: "text-cyan-400" },
 ];
 
