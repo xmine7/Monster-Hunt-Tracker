@@ -307,7 +307,16 @@ export default function Dashboard() {
     
     const totalAttempts = hunts.reduce((acc: number, hunt: HuntRecord) => acc + (hunt.attempts || 1), 0);
 
-    return { totalPoints, maxPossiblePoints, weaponStats: sortedWeapons, totalHunts: totalAttempts, bestWeapons, worstWeapons, bestHuntPerMonster };
+    // Build best time per monster with weapon info
+    const bestTimePerMonster: Record<string, { timeSeconds: number, weaponId: string, huntId: string }> = {};
+    hunts.forEach((hunt: HuntRecord) => {
+      const existing = bestTimePerMonster[hunt.monsterId];
+      if (!existing || hunt.timeSeconds < existing.timeSeconds) {
+        bestTimePerMonster[hunt.monsterId] = { timeSeconds: hunt.timeSeconds, weaponId: hunt.weaponId, huntId: hunt.id };
+      }
+    });
+
+    return { totalPoints, maxPossiblePoints, weaponStats: sortedWeapons, totalHunts: totalAttempts, bestWeapons, worstWeapons, bestHuntPerMonster, bestTimePerMonster };
   }, [hunts, sortBy]);
 
   const handleAddHunt = () => {
@@ -780,6 +789,37 @@ export default function Dashboard() {
                   </div>
                 </DialogContent>
               </Dialog>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/40 border-white/5 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="font-display text-lg text-white flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-accent" /> Best Times
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              {MONSTERS.map((monster) => {
+                const best = stats.bestTimePerMonster[monster.id];
+                const weaponName = best ? WEAPONS.find(w => w.id === best.weaponId)?.name : null;
+                const rank = best ? getRank(best.timeSeconds) : null;
+                return (
+                  <div key={monster.id} className="flex items-center justify-between text-sm py-1.5 border-b border-white/5 last:border-0">
+                    <div className="flex items-center gap-2">
+                      <monster.icon className={cn("w-4 h-4", best ? monster.color : "text-muted-foreground/30")} />
+                      {best ? (
+                        <div className="flex flex-col leading-none">
+                          <span className="font-mono text-slate-200">{formatTime(best.timeSeconds)}</span>
+                          <span className="text-[10px] text-muted-foreground mt-0.5">{weaponName}</span>
+                        </div>
+                      ) : (
+                        <span className="font-mono text-muted-foreground/40 italic text-xs">tbd</span>
+                      )}
+                    </div>
+                    {rank && <RankIcon rank={rank} className="w-4 h-4" />}
+                  </div>
+                );
+              })}
             </CardContent>
           </Card>
 
