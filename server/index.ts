@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { pool } from "./db";
 
 const app = express();
 const httpServer = createServer(app);
@@ -60,6 +61,20 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Auto-create tables if they don't exist (needed for fresh deployments)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS hunts (
+      id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+      monster_id TEXT NOT NULL,
+      weapon_id TEXT NOT NULL,
+      time_seconds INTEGER NOT NULL,
+      is_pb BOOLEAN NOT NULL DEFAULT true,
+      date TIMESTAMP NOT NULL DEFAULT NOW(),
+      attempts INTEGER NOT NULL DEFAULT 1,
+      mode TEXT NOT NULL DEFAULT 'solo'
+    )
+  `);
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
