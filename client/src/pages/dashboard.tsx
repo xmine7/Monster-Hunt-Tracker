@@ -472,7 +472,6 @@ export default function Dashboard() {
                 <SelectContent className="bg-card border-white/10 text-slate-200">
                   <SelectItem value="default">Most Recent</SelectItem>
                   <SelectItem value="points">Total Points</SelectItem>
-                  <SelectItem value="hunts">Total Hunts</SelectItem>
                 </SelectContent>
               </Select>
 
