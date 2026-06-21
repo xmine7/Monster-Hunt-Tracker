@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Trophy, Swords, Shield } from "lucide-react";
+import { Trophy, Swords, Shield, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,11 +16,13 @@ export default function AuthPage() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   const [regUsername, setRegUsername] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regError, setRegError] = useState("");
   const [regLoading, setRegLoading] = useState(false);
+  const [showRegPassword, setShowRegPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,16 +125,26 @@ export default function AuthPage() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-slate-300">Password</Label>
-                  <Input
-                    data-testid="input-login-password"
-                    type="password"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="bg-background/50 border-white/10 text-white placeholder:text-muted-foreground"
-                    required
-                    autoComplete="current-password"
-                  />
+                  <div className="relative">
+                    <Input
+                      data-testid="input-login-password"
+                      type={showLoginPassword ? "text" : "password"}
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="bg-background/50 border-white/10 text-white placeholder:text-muted-foreground pr-10"
+                      required
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
                 {loginError && (
                   <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded px-3 py-2">
@@ -166,16 +178,26 @@ export default function AuthPage() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-slate-300">Password</Label>
-                  <Input
-                    data-testid="input-register-password"
-                    type="password"
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                    placeholder="At least 6 characters"
-                    className="bg-background/50 border-white/10 text-white placeholder:text-muted-foreground"
-                    required
-                    autoComplete="new-password"
-                  />
+                  <div className="relative">
+                    <Input
+                      data-testid="input-register-password"
+                      type={showRegPassword ? "text" : "password"}
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      placeholder="At least 6 characters"
+                      className="bg-background/50 border-white/10 text-white placeholder:text-muted-foreground pr-10"
+                      required
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowRegPassword((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
                 {regError && (
                   <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded px-3 py-2">
