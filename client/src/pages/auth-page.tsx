@@ -99,6 +99,9 @@ export default function AuthPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <p className="text-center text-xs text-muted-foreground mb-4">
+            Forgot your password? Contact <span className="text-primary font-bold">xmine7</span> on Discord.
+          </p>
           <Tabs defaultValue="login">
             <TabsList className="w-full bg-background/50 border border-white/10 mb-6">
               <TabsTrigger value="login" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-background font-bold">
