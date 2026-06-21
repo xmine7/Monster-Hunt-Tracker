@@ -107,6 +107,15 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/leaderboard", requireAuth, async (req, res) => {
+    try {
+      const allHunts = await storage.getAllHuntsWithUsers();
+      res.json(allHunts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch leaderboard" });
+    }
+  });
+
   app.delete("/api/hunts", requireAuth, async (req, res) => {
     try {
       const userId = (req.user as any).id;

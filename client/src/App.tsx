@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import AuthPage from "@/pages/auth-page";
+import Leaderboard from "@/pages/leaderboard";
 import { useUser } from "@/hooks/use-user";
 import { useEffect } from "react";
 
@@ -59,6 +60,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
+      <Route path="/leaderboard" component={() => <ProtectedRoute component={Leaderboard} />} />
       <Route path="/auth" component={() => <GuestRoute component={AuthPage} />} />
       <Route component={NotFound} />
     </Switch>

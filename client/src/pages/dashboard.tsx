@@ -12,6 +12,7 @@ import {
   LogOut, User
 } from "lucide-react";
 import { useUser, useLogout } from "@/hooks/use-user";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -60,6 +61,7 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { user } = useUser();
   const logout = useLogout();
+  const [, setLocation] = useLocation();
 
   const mode: HuntMode = "solo";
 
@@ -404,6 +406,15 @@ export default function Dashboard() {
             <Trophy className="w-4 h-4" /> 
             World Speedrun Tracker
           </p>
+          <Button
+            data-testid="button-leaderboard"
+            variant="outline"
+            size="sm"
+            onClick={() => setLocation("/leaderboard")}
+            className="mt-2 bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white h-7 text-xs gap-1.5"
+          >
+            <Trophy className="w-3 h-3" /> View Leaderboard
+          </Button>
         </div>
         
         <div className="flex items-center gap-4">
