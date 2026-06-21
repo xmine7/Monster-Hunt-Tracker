@@ -8,8 +8,10 @@ import {
 import { 
   Skull, Medal, Star, Diamond, 
   Plus, Trophy, Swords,
-  TrendingUp, TrendingDown, RotateCcw, Trash2, Undo2, Shuffle, Dices
+  TrendingUp, TrendingDown, RotateCcw, Trash2, Undo2, Shuffle, Dices,
+  LogOut, User
 } from "lucide-react";
+import { useUser, useLogout } from "@/hooks/use-user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -56,6 +58,8 @@ type HuntMode = "solo";
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
+  const { user } = useUser();
+  const logout = useLogout();
 
   const mode: HuntMode = "solo";
 
@@ -402,7 +406,7 @@ export default function Dashboard() {
           </p>
         </div>
         
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4">
           <div className="text-right">
             <div className="text-sm text-muted-foreground uppercase tracking-wider">Total Score</div>
             <div className="text-3xl font-display font-bold text-primary flex items-center justify-end gap-2">
@@ -411,6 +415,21 @@ export default function Dashboard() {
               </span>
               <Diamond className="w-6 h-6 fill-primary/20" />
             </div>
+          </div>
+          <div className="flex flex-col items-end gap-2 border-l border-white/10 pl-4">
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <User className="w-3.5 h-3.5" />
+              <span className="font-bold text-slate-300">{user?.username}</span>
+            </div>
+            <Button
+              data-testid="button-logout"
+              variant="outline"
+              size="sm"
+              onClick={logout}
+              className="bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white h-7 text-xs gap-1.5"
+            >
+              <LogOut className="w-3 h-3" /> Logout
+            </Button>
           </div>
         </div>
       </header>

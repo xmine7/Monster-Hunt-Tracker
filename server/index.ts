@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { pool } from "./db";
+import { setupAuth } from "./auth";
 
 const app = express();
 const httpServer = createServer(app);
@@ -61,10 +62,19 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Auto-create tables if they don't exist (needed for fresh deployments)
+  // Auto-create/migrate tables on startup (safe for fresh and existing deployments)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+      username TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL
+    )
+  `);
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS hunts (
       id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id VARCHAR REFERENCES users(id),
       monster_id TEXT NOT NULL,
       weapon_id TEXT NOT NULL,
       time_seconds INTEGER NOT NULL,
@@ -74,6 +84,14 @@ app.use((req, res, next) => {
       mode TEXT NOT NULL DEFAULT 'solo'
     )
   `);
+
+  // Add user_id column to existing hunts tables that don't have it yet
+  await pool.query(`
+    ALTER TABLE hunts ADD COLUMN IF NOT EXISTS user_id VARCHAR REFERENCES users(id)
+  `);
+
+  // Setup session + passport auth
+  setupAuth(app);
 
   await registerRoutes(httpServer, app);
 
@@ -90,9 +108,6 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
@@ -100,10 +115,6 @@ app.use((req, res, next) => {
     await setupVite(httpServer, app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(
     {
