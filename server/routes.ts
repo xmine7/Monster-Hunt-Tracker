@@ -107,6 +107,25 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/admin/reset-password", async (req, res) => {
+    const adminSecret = process.env.ADMIN_SECRET;
+    const { secret, username, newPassword } = req.body;
+
+    if (!adminSecret || secret !== adminSecret) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    if (!username || !newPassword) {
+      return res.status(400).json({ error: "username and newPassword required" });
+    }
+
+    const { hashPassword } = await import("./auth");
+    const hashed = await hashPassword(newPassword);
+    const updated = await storage.updateUserPassword(username, hashed);
+
+    if (!updated) return res.status(404).json({ error: "User not found" });
+    res.json({ success: true, message: `Password reset for ${username}` });
+  });
+
   app.get("/api/leaderboard", requireAuth, async (req, res) => {
     try {
       const allHunts = await storage.getAllHuntsWithUsers();
