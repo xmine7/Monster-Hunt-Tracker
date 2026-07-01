@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 export type AuthUser = {
   id: string;
   username: string;
+  hunterId: string | null;
 };
 
 export function useUser() {

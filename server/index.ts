@@ -90,6 +90,11 @@ app.use((req, res, next) => {
     ALTER TABLE hunts ADD COLUMN IF NOT EXISTS user_id VARCHAR REFERENCES users(id)
   `);
 
+  // Add hunter_id column for existing users
+  await pool.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS hunter_id TEXT UNIQUE
+  `).catch(() => {});
+
   // Make password nullable (migrating to username-only login)
   await pool.query(`
     ALTER TABLE users ALTER COLUMN password DROP NOT NULL

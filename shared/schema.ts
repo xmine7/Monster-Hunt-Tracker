@@ -6,7 +6,8 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
-  password: text("password"), // kept for DB compatibility, no longer used
+  hunterId: text("hunter_id").unique(),
+  password: text("password"),
 });
 
 export const hunts = pgTable("hunts", {
@@ -21,7 +22,7 @@ export const hunts = pgTable("hunts", {
   mode: text("mode").notNull().default("solo"),
 });
 
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, password: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, password: true, hunterId: true });
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 

@@ -7,6 +7,7 @@ export type HuntWithUser = Hunt & { username: string };
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByHunterId(hunterId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
 
   getAllHuntsWithUsers(): Promise<HuntWithUser[]>;
@@ -31,8 +32,20 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  async getUserByHunterId(hunterId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.hunterId, hunterId));
+    return user || undefined;
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    // Generate a unique 4-digit Hunter ID
+    let hunterId: string | undefined;
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const candidate = String(Math.floor(Math.random() * 9000) + 1000);
+      const existing = await this.getUserByHunterId(candidate);
+      if (!existing) { hunterId = candidate; break; }
+    }
+    const [user] = await db.insert(users).values({ ...insertUser, hunterId }).returning();
     return user;
   }
 

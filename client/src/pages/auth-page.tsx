@@ -110,12 +110,12 @@ export default function AuthPage() {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Username</Label>
+                  <Label className="text-slate-300">Username or Hunter ID</Label>
                   <Input
                     data-testid="input-login-username"
                     value={loginUsername}
                     onChange={(e) => setLoginUsername(e.target.value)}
-                    placeholder="Your hunter name"
+                    placeholder="Your name or 4-digit ID (e.g. 4821)"
                     className="bg-background/50 border-white/10 text-white placeholder:text-muted-foreground"
                     required
                     autoComplete="username"

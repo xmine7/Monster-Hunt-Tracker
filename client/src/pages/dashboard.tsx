@@ -432,6 +432,11 @@ export default function Dashboard() {
               <User className="w-3.5 h-3.5" />
               <span className="font-bold text-slate-300">{user?.username}</span>
             </div>
+            {user?.hunterId && (
+              <div className="text-xs text-muted-foreground/70">
+                Hunter ID: <span className="font-mono text-primary/80">{user.hunterId}</span>
+              </div>
+            )}
             <Button
               data-testid="button-logout"
               variant="outline"

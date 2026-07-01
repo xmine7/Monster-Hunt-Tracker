@@ -23,7 +23,7 @@ export async function registerRoutes(
         req.session.destroy(() => {});
         return res.status(401).json(null);
       }
-      res.json({ id: user.id, username: user.username });
+      res.json({ id: user.id, username: user.username, hunterId: user.hunterId });
     } catch {
       res.status(500).json(null);
     }
@@ -51,16 +51,21 @@ export async function registerRoutes(
     }
   });
 
-  // Login with username only
+  // Login with username OR hunter ID
   app.post("/api/login", async (req, res) => {
     try {
       const { username } = req.body;
       if (!username || !username.trim()) {
-        return res.status(400).json({ error: "Username is required" });
+        return res.status(400).json({ error: "Username or Hunter ID is required" });
       }
-      const user = await storage.getUserByUsername(username.trim());
+      const input = username.trim();
+      // Try username first, then hunter ID (digits only)
+      let user = await storage.getUserByUsername(input);
+      if (!user && /^\d+$/.test(input)) {
+        user = await storage.getUserByHunterId(input);
+      }
       if (!user) {
-        return res.status(401).json({ error: "Username not found — have you registered yet?" });
+        return res.status(401).json({ error: "Not found — check your username or Hunter ID" });
       }
       req.session.userId = user.id;
       req.session.save((err) => {
