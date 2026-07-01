@@ -90,6 +90,11 @@ app.use((req, res, next) => {
     ALTER TABLE hunts ADD COLUMN IF NOT EXISTS user_id VARCHAR REFERENCES users(id)
   `);
 
+  // Make password nullable (migrating to username-only login)
+  await pool.query(`
+    ALTER TABLE users ALTER COLUMN password DROP NOT NULL
+  `).catch(() => {});
+
   // Setup session + passport auth
   setupAuth(app);
 

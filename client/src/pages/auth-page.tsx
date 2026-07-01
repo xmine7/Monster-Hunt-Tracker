@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Trophy, Swords, Shield, Eye, EyeOff } from "lucide-react";
+import { Trophy, Swords, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,16 +13,12 @@ export default function AuthPage() {
   const queryClient = useQueryClient();
 
   const [loginUsername, setLoginUsername] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
-  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   const [regUsername, setRegUsername] = useState("");
-  const [regPassword, setRegPassword] = useState("");
   const [regError, setRegError] = useState("");
   const [regLoading, setRegLoading] = useState(false);
-  const [showRegPassword, setShowRegPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +28,7 @@ export default function AuthPage() {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: loginUsername, password: loginPassword }),
+        body: JSON.stringify({ username: loginUsername }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -56,7 +52,7 @@ export default function AuthPage() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: regUsername, password: regPassword }),
+        body: JSON.stringify({ username: regUsername }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -74,7 +70,6 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 font-sans">
-      {/* Header */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-3 mb-3">
           <Swords className="w-8 h-8 text-primary" />
@@ -97,11 +92,11 @@ export default function AuthPage() {
           <CardDescription className="text-muted-foreground">
             Your hunts are saved privately to your account
           </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-xs text-muted-foreground mb-4">
-            Forgot your password? Contact <span className="text-primary font-bold">xmine7</span> on Discord.
+          <p className="text-center text-xs text-muted-foreground pt-1">
+            Forgot your username? Contact <span className="text-primary font-bold">xmine7</span> on Discord.
           </p>
+        </CardHeader>
+        <CardContent className="pt-4">
           <Tabs defaultValue="login">
             <TabsList className="w-full bg-background/50 border border-white/10 mb-6">
               <TabsTrigger value="login" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-background font-bold">
@@ -126,29 +121,6 @@ export default function AuthPage() {
                     autoComplete="username"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-slate-300">Password</Label>
-                  <div className="relative">
-                    <Input
-                      data-testid="input-login-password"
-                      type={showLoginPassword ? "text" : "password"}
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="bg-background/50 border-white/10 text-white placeholder:text-muted-foreground pr-10"
-                      required
-                      autoComplete="current-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowLoginPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
-                      tabIndex={-1}
-                    >
-                      {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
                 {loginError && (
                   <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded px-3 py-2">
                     {loginError}
@@ -168,39 +140,19 @@ export default function AuthPage() {
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Username</Label>
+                  <Label className="text-slate-300">Choose a Username</Label>
                   <Input
                     data-testid="input-register-username"
                     value={regUsername}
                     onChange={(e) => setRegUsername(e.target.value)}
-                    placeholder="Choose a hunter name"
+                    placeholder="Pick a unique hunter name"
                     className="bg-background/50 border-white/10 text-white placeholder:text-muted-foreground"
                     required
                     autoComplete="username"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-slate-300">Password</Label>
-                  <div className="relative">
-                    <Input
-                      data-testid="input-register-password"
-                      type={showRegPassword ? "text" : "password"}
-                      value={regPassword}
-                      onChange={(e) => setRegPassword(e.target.value)}
-                      placeholder="At least 6 characters"
-                      className="bg-background/50 border-white/10 text-white placeholder:text-muted-foreground pr-10"
-                      required
-                      autoComplete="new-password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowRegPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
-                      tabIndex={-1}
-                    >
-                      {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Once registered, your username is yours — nobody else can take it.
+                  </p>
                 </div>
                 {regError && (
                   <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded px-3 py-2">

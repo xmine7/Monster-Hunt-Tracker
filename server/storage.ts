@@ -10,7 +10,6 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
 
   getAllHuntsWithUsers(): Promise<HuntWithUser[]>;
-  updateUserPassword(username: string, hashedPassword: string): Promise<boolean>;
 
   getAllHunts(userId: string): Promise<Hunt[]>;
   getHuntsByMode(userId: string, mode: string): Promise<Hunt[]>;
@@ -35,15 +34,6 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
-  }
-
-  async updateUserPassword(username: string, hashedPassword: string): Promise<boolean> {
-    const result = await db
-      .update(users)
-      .set({ password: hashedPassword })
-      .where(eq(users.username, username))
-      .returning();
-    return result.length > 0;
   }
 
   async getAllHuntsWithUsers(): Promise<HuntWithUser[]> {
@@ -82,10 +72,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createHunt(userId: string, insertHunt: InsertHunt): Promise<Hunt> {
-    const [hunt] = await db
-      .insert(hunts)
-      .values({ ...insertHunt, userId })
-      .returning();
+    const [hunt] = await db.insert(hunts).values({ ...insertHunt, userId }).returning();
     return hunt;
   }
 
