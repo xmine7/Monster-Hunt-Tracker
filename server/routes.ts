@@ -67,10 +67,14 @@ export async function registerRoutes(
       if (!user) {
         return res.status(401).json({ error: "Not found — check your username or Hunter ID" });
       }
+      // Auto-assign Hunter ID to older accounts that don't have one yet
+      if (!user.hunterId) {
+        user = await storage.assignHunterId(user.id) ?? user;
+      }
       req.session.userId = user.id;
       req.session.save((err) => {
         if (err) return res.status(500).json({ error: "Login failed, try again" });
-        res.json({ id: user.id, username: user.username });
+        res.json({ id: user!.id, username: user!.username, hunterId: user!.hunterId });
       });
     } catch (err) {
       res.status(500).json({ error: "Login failed" });
