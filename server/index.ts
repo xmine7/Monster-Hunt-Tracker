@@ -95,7 +95,20 @@ app.use((req, res, next) => {
     ALTER TABLE users ALTER COLUMN password DROP NOT NULL
   `).catch(() => {});
 
-  // Setup session + passport auth
+  // Pre-create session table so connect-pg-simple works reliably
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "session" (
+      "sid" varchar NOT NULL,
+      "sess" json NOT NULL,
+      "expire" timestamp(6) NOT NULL,
+      CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
+    )
+  `).catch(() => {});
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire")
+  `).catch(() => {});
+
+  // Setup session auth
   setupAuth(app);
 
   await registerRoutes(httpServer, app);

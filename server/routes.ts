@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { insertHuntSchema } from "@shared/schema";
 
 function requireAuth(req: Request, res: Response, next: NextFunction) {
-  if (!req.isAuthenticated()) {
+  if (!req.session.userId) {
     return res.status(401).json({ error: "Not authenticated" });
   }
   next();
@@ -15,10 +15,18 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   // Who am I?
-  app.get("/api/me", (req, res) => {
-    if (!req.isAuthenticated() || !req.user) return res.status(401).json(null);
-    const user = req.user as any;
-    res.json({ id: user.id, username: user.username });
+  app.get("/api/me", async (req, res) => {
+    if (!req.session.userId) return res.status(401).json(null);
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        req.session.destroy(() => {});
+        return res.status(401).json(null);
+      }
+      res.json({ id: user.id, username: user.username });
+    } catch {
+      res.status(500).json(null);
+    }
   });
 
   // Register with username only
@@ -33,8 +41,9 @@ export async function registerRoutes(
         return res.status(400).json({ error: "That username is already taken — pick another one!" });
       }
       const user = await storage.createUser({ username: username.trim() });
-      req.login(user, (err) => {
-        if (err) return res.status(500).json({ error: "Login failed after registration" });
+      req.session.userId = user.id;
+      req.session.save((err) => {
+        if (err) return res.status(500).json({ error: "Registration failed, try again" });
         res.json({ id: user.id, username: user.username });
       });
     } catch (err) {
@@ -53,8 +62,9 @@ export async function registerRoutes(
       if (!user) {
         return res.status(401).json({ error: "Username not found — have you registered yet?" });
       }
-      req.login(user, (err) => {
-        if (err) return res.status(500).json({ error: "Login failed" });
+      req.session.userId = user.id;
+      req.session.save((err) => {
+        if (err) return res.status(500).json({ error: "Login failed, try again" });
         res.json({ id: user.id, username: user.username });
       });
     } catch (err) {
@@ -63,26 +73,13 @@ export async function registerRoutes(
   });
 
   app.post("/api/logout", (req, res) => {
-    req.logout(() => res.json({ success: true }));
-  });
-
-  // Admin: reset username (in case someone wants to change it)
-  app.post("/api/admin/reset-password", async (req, res) => {
-    const adminSecret = process.env.ADMIN_SECRET;
-    const { secret, username, newUsername } = req.body;
-    if (!adminSecret || secret !== adminSecret) {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-    if (!username) return res.status(400).json({ error: "username required" });
-    const user = await storage.getUserByUsername(username);
-    if (!user) return res.status(404).json({ error: "User not found" });
-    res.json({ success: true, message: `User ${username} exists and can log in with their username` });
+    req.session.destroy(() => res.json({ success: true }));
   });
 
   // Hunt routes (all require auth, all scoped to logged-in user)
   app.get("/api/hunts", requireAuth, async (req, res) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = req.session.userId!;
       const mode = req.query.mode as string;
       const hunts = mode
         ? await storage.getHuntsByMode(userId, mode)
@@ -95,7 +92,7 @@ export async function registerRoutes(
 
   app.post("/api/hunts", requireAuth, async (req, res) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = req.session.userId!;
       const validatedData = insertHuntSchema.parse(req.body);
       const mode = validatedData.mode || "solo";
       const existing = await storage.getHunt(userId, validatedData.monsterId, validatedData.weaponId, mode);
@@ -113,7 +110,7 @@ export async function registerRoutes(
 
   app.delete("/api/hunts", requireAuth, async (req, res) => {
     try {
-      const userId = (req.user as any).id;
+      const userId = req.session.userId!;
       const mode = req.query.mode as string;
       if (mode) {
         await storage.deleteHuntsByMode(userId, mode);
@@ -133,6 +130,19 @@ export async function registerRoutes(
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch leaderboard" });
     }
+  });
+
+  // Admin: check if a user exists
+  app.post("/api/admin/reset-password", async (req, res) => {
+    const adminSecret = process.env.ADMIN_SECRET;
+    const { secret, username } = req.body;
+    if (!adminSecret || secret !== adminSecret) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    if (!username) return res.status(400).json({ error: "username required" });
+    const user = await storage.getUserByUsername(username);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json({ success: true, message: `User ${username} exists` });
   });
 
   return httpServer;
