@@ -917,7 +917,7 @@ export default function Dashboard() {
               onClick={async () => {
                 if (!huntToDelete) return;
                 await fetch(`/api/hunts/${huntToDelete.id}`, { method: "DELETE" });
-                queryClient.invalidateQueries({ queryKey: ["/api/hunts"] });
+                queryClient.invalidateQueries({ queryKey: ["hunts"] });
                 setHuntToDelete(null);
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
