@@ -11,6 +11,7 @@ export interface IStorage {
   assignHunterId(userId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
 
+  deleteHunt(userId: string, huntId: string): Promise<void>;
   getAllHuntsWithUsers(): Promise<HuntWithUser[]>;
 
   getAllHunts(userId: string): Promise<Hunt[]>;
@@ -60,6 +61,10 @@ export class DatabaseStorage implements IStorage {
     }
     const [user] = await db.insert(users).values({ ...insertUser, hunterId }).returning();
     return user;
+  }
+
+  async deleteHunt(userId: string, huntId: string): Promise<void> {
+    await db.delete(hunts).where(and(eq(hunts.id, huntId), eq(hunts.userId, userId)));
   }
 
   async getAllHuntsWithUsers(): Promise<HuntWithUser[]> {

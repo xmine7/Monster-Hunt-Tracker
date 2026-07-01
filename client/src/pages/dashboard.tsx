@@ -81,7 +81,8 @@ export default function Dashboard() {
   });
 
   const [isAddOpen, setIsAddOpen] = useState(false);
-  
+  const [huntToDelete, setHuntToDelete] = useState<HuntRecord | null>(null);
+
   // History for Undo functionality
   const [history, setHistory] = useState<HuntRecord[][]>([]);
 
@@ -622,14 +623,12 @@ export default function Dashboard() {
                         );
                         const rank = hunt ? getRank(hunt.timeSeconds) : null;
                         return (
-                          <div key={monster.id} className="flex items-center justify-between text-sm py-1">
+                          <div key={monster.id} className="group flex items-center justify-between text-sm py-1">
                             <div className="flex items-center gap-2">
                               <monster.icon className={cn("w-4 h-4", hunt ? monster.color : "text-muted-foreground/40")} />
                               <div className="flex flex-col leading-none">
                                 {hunt ? (
-                                  <>
-                                    <span className="font-mono text-slate-300">{formatTime(hunt.timeSeconds)}</span>
-                                  </>
+                                  <span className="font-mono text-slate-300">{formatTime(hunt.timeSeconds)}</span>
                                 ) : (
                                   <span className="font-mono text-muted-foreground/40 italic text-xs">tbd</span>
                                 )}
@@ -639,6 +638,16 @@ export default function Dashboard() {
                               {rank && <RankIcon rank={rank} className="w-4 h-4" />}
                               {hunt && stats.bestHuntPerMonster[hunt.monsterId] === hunt.id && (
                                 <Star className="w-3 h-3 text-accent fill-accent" />
+                              )}
+                              {hunt && (
+                                <button
+                                  data-testid={`button-delete-hunt-${hunt.id}`}
+                                  onClick={() => setHuntToDelete(hunt)}
+                                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-muted-foreground/40 hover:text-destructive ml-1"
+                                  title="Delete this hunt"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               )}
                             </div>
                           </div>
@@ -887,6 +896,37 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
+
+      {/* Delete Single Hunt Confirm Dialog */}
+      <AlertDialog open={!!huntToDelete} onOpenChange={(open) => !open && setHuntToDelete(null)}>
+        <AlertDialogContent className="bg-card border-white/10 text-slate-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this hunt?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              {huntToDelete && (() => {
+                const monster = MONSTERS.find(m => m.id === huntToDelete.monsterId);
+                const weapon = WEAPONS.find(w => w.id === huntToDelete.weaponId);
+                return `${monster?.name} · ${weapon?.name} · ${formatTime(huntToDelete.timeSeconds)}`;
+              })()}
+              <br />This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-transparent border-white/10 hover:bg-white/5 hover:text-white">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!huntToDelete) return;
+                await fetch(`/api/hunts/${huntToDelete.id}`, { method: "DELETE" });
+                queryClient.invalidateQueries({ queryKey: ["/api/hunts"] });
+                setHuntToDelete(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Trash2 className="w-4 h-4 mr-2" /> Delete Hunt
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Reset Section */}
       <div className="flex justify-center pt-8 pb-4 border-t border-white/5">

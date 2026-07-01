@@ -117,6 +117,16 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/hunts/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      await storage.deleteHunt(userId, req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete hunt" });
+    }
+  });
+
   app.delete("/api/hunts", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId!;
