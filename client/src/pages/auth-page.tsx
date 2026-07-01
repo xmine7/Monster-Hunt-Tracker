@@ -93,7 +93,7 @@ export default function AuthPage() {
             Your hunts are saved privately to your account
           </CardDescription>
           <p className="text-center text-xs text-muted-foreground pt-1">
-            Forgot your username? Contact <span className="text-primary font-bold">xmine7</span> on Discord.
+            🚧 This project is still in development — expect updates!
           </p>
         </CardHeader>
         <CardContent className="pt-4">
