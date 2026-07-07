@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { MONSTERS, WEAPONS, getRank, getPoints, formatTime } from "@/lib/mh-data";
-import { Trophy, ArrowLeft, Medal, Star, Skull, Crown, Swords, Clock, ChevronDown, Search } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Trophy, ArrowLeft, Medal, Star, Skull, Crown, Swords, Clock, Search, UserRound, Users } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +24,8 @@ type HuntWithUser = {
   mode: string;
 };
 
+type LeaderboardMode = "all" | "solo" | "duo" | "squad";
+
 function RankBadge({ position }: { position: number }) {
   if (position === 1) return <Crown className="w-5 h-5 text-yellow-400 fill-yellow-400/30" />;
   if (position === 2) return <Medal className="w-5 h-5 text-slate-300 fill-slate-300/30" />;
@@ -36,6 +38,7 @@ export default function Leaderboard() {
   const [selectedMonster, setSelectedMonster] = useState(MONSTERS[0].id);
   const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0].id);
   const [searchQuery, setSearchQuery] = useState("");
+  const [leaderboardMode, setLeaderboardMode] = useState<LeaderboardMode>("all");
 
   const { data: allHunts = [], isLoading } = useQuery<HuntWithUser[]>({
     queryKey: ["/api/leaderboard"],
@@ -46,18 +49,21 @@ export default function Leaderboard() {
     },
   });
 
+  const filteredHunts = useMemo(() =>
+    leaderboardMode === "all" ? allHunts : allHunts.filter(h => h.mode === leaderboardMode),
+    [allHunts, leaderboardMode]
+  );
+
   // --- Overall Rankings ---
   const overallRankings = useMemo(() => {
-    // Find global best time per monster across ALL hunters
     const globalBestPerMonster: Record<string, { timeSeconds: number; huntId: string }> = {};
-    allHunts.forEach((hunt) => {
+    filteredHunts.forEach((hunt) => {
       const existing = globalBestPerMonster[hunt.monsterId];
       if (!existing || hunt.timeSeconds < existing.timeSeconds) {
         globalBestPerMonster[hunt.monsterId] = { timeSeconds: hunt.timeSeconds, huntId: hunt.id };
       }
     });
 
-    // Aggregate per user
     const userStats: Record<string, {
       username: string;
       points: number;
@@ -65,7 +71,7 @@ export default function Leaderboard() {
       stars: number; hunts: number;
     }> = {};
 
-    allHunts.forEach((hunt) => {
+    filteredHunts.forEach((hunt) => {
       if (!hunt.userId) return;
       if (!userStats[hunt.userId]) {
         userStats[hunt.userId] = { username: hunt.username, points: 0, gold: 0, silver: 0, bronze: 0, skull: 0, stars: 0, hunts: 0 };
@@ -81,12 +87,11 @@ export default function Leaderboard() {
     });
 
     return Object.values(userStats).sort((a, b) => b.points - a.points);
-  }, [allHunts]);
+  }, [filteredHunts]);
 
   // --- Monster Records ---
   const monsterRecords = useMemo(() => {
-    const filtered = allHunts.filter((h) => h.monsterId === selectedMonster);
-    // One entry per user — their personal best for this monster
+    const filtered = filteredHunts.filter((h) => h.monsterId === selectedMonster);
     const perUser: Record<string, HuntWithUser> = {};
     filtered.forEach((hunt) => {
       const key = hunt.userId ?? hunt.username;
@@ -95,14 +100,13 @@ export default function Leaderboard() {
       }
     });
     return Object.values(perUser).sort((a, b) => a.timeSeconds - b.timeSeconds);
-  }, [allHunts, selectedMonster]);
+  }, [filteredHunts, selectedMonster]);
 
   // --- Weapon Records ---
   const weaponRecords = useMemo(() => {
-    const filtered = allHunts.filter(
+    const filtered = filteredHunts.filter(
       (h) => h.monsterId === selectedMonster && h.weaponId === selectedWeapon
     );
-    // One entry per user — their personal best for this monster+weapon
     const perUser: Record<string, HuntWithUser> = {};
     filtered.forEach((hunt) => {
       const key = hunt.userId ?? hunt.username;
@@ -111,7 +115,7 @@ export default function Leaderboard() {
       }
     });
     return Object.values(perUser).sort((a, b) => a.timeSeconds - b.timeSeconds);
-  }, [allHunts, selectedMonster, selectedWeapon]);
+  }, [filteredHunts, selectedMonster, selectedWeapon]);
 
   const selectedMonsterData = MONSTERS.find((m) => m.id === selectedMonster);
   const selectedWeaponData = WEAPONS.find((w) => w.id === selectedWeapon);
@@ -124,8 +128,15 @@ export default function Leaderboard() {
     );
   }
 
+  const modeButtons: { value: LeaderboardMode; label: string }[] = [
+    { value: "all", label: "All" },
+    { value: "solo", label: "Solo" },
+    { value: "duo", label: "Duo" },
+    { value: "squad", label: "Squad" },
+  ];
+
   return (
-    <div className="min-h-screen p-4 md:p-8 space-y-8 font-sans text-slate-200">
+    <div className="min-h-screen p-4 md:p-8 space-y-6 font-sans text-slate-200">
       {/* Header */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card/50 backdrop-blur-md p-6 rounded-xl border border-white/5">
         <div className="flex items-center gap-4">
@@ -154,28 +165,46 @@ export default function Leaderboard() {
         </div>
       </header>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Search hunter..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 bg-card/50 border-white/10 text-white placeholder:text-muted-foreground"
-        />
+      {/* Search + Mode Filter */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search hunter..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 bg-card/50 border-white/10 text-white placeholder:text-muted-foreground"
+          />
+        </div>
+        <div className="flex rounded-lg border border-white/10 overflow-hidden text-xs font-bold shrink-0">
+          {modeButtons.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setLeaderboardMode(value)}
+              className={cn(
+                "px-3 py-2 transition-colors",
+                leaderboardMode === value ? "bg-primary text-background" : "bg-background/30 text-muted-foreground hover:text-white"
+              )}
+            >
+              {value === "solo" ? <UserRound className="w-3.5 h-3.5 inline mr-1" /> :
+               value !== "all" ? <Users className="w-3.5 h-3.5 inline mr-1" /> : null}
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="overall">
         <TabsList className="bg-card/50 border border-white/10 w-full grid grid-cols-3">
-          <TabsTrigger value="overall" className="data-[state=active]:bg-primary data-[state=active]:text-background font-bold flex-col gap-1 h-auto py-2 text-xs">
-            <Trophy className="w-4 h-4" /> Overall
+          <TabsTrigger value="overall" className="data-[state=active]:bg-primary data-[state=active]:text-background font-bold gap-1.5 py-2.5 text-xs">
+            <Trophy className="w-3.5 h-3.5 shrink-0" /> Overall
           </TabsTrigger>
-          <TabsTrigger value="monster" className="data-[state=active]:bg-primary data-[state=active]:text-background font-bold flex-col gap-1 h-auto py-2 text-xs">
-            <Skull className="w-4 h-4" /> Monster
+          <TabsTrigger value="monster" className="data-[state=active]:bg-primary data-[state=active]:text-background font-bold gap-1.5 py-2.5 text-xs">
+            <Skull className="w-3.5 h-3.5 shrink-0" /> Monster
           </TabsTrigger>
-          <TabsTrigger value="weapon" className="data-[state=active]:bg-primary data-[state=active]:text-background font-bold flex-col gap-1 h-auto py-2 text-xs">
-            <Swords className="w-4 h-4" /> Weapon
+          <TabsTrigger value="weapon" className="data-[state=active]:bg-primary data-[state=active]:text-background font-bold gap-1.5 py-2.5 text-xs">
+            <Swords className="w-3.5 h-3.5 shrink-0" /> Weapon
           </TabsTrigger>
         </TabsList>
 
@@ -189,53 +218,53 @@ export default function Leaderboard() {
             </Card>
           ) : (
             <div className="space-y-3">
-              {overallRankings.filter(h => h.username.toLowerCase().includes(searchQuery.toLowerCase())).map((hunter, i) => (
-                <Card
-                  key={hunter.username}
-                  data-testid={`row-overall-${i}`}
-                  className={cn(
-                    "bg-card/40 border-white/5 backdrop-blur-sm transition-all hover:bg-card/60",
-                    i === 0 && "border-yellow-400/30 bg-gradient-to-r from-card/60 to-yellow-400/5"
-                  )}
-                >
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <div className="flex items-center justify-center w-8 shrink-0">
-                      <RankBadge position={i + 1} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <button
-                        onClick={() => setLocation(`/profile/${hunter.username}`)}
-                        className="font-display font-bold text-white text-lg leading-tight truncate hover:text-primary transition-colors text-left"
-                      >
-                        {hunter.username}
-                      </button>
-                      <div className="flex items-center gap-3 mt-1 flex-wrap">
-                        <span className="flex items-center gap-1 text-xs text-yellow-400">
-                          <Medal className="w-3 h-3 fill-yellow-400/30" /> {hunter.gold}
-                        </span>
-                        <span className="flex items-center gap-1 text-xs text-slate-300">
-                          <Medal className="w-3 h-3 fill-slate-300/30" /> {hunter.silver}
-                        </span>
-                        <span className="flex items-center gap-1 text-xs text-amber-700">
-                          <Medal className="w-3 h-3 fill-amber-700/30" /> {hunter.bronze}
-                        </span>
-                        <span className="flex items-center gap-1 text-xs text-gray-500">
-                          <Skull className="w-3 h-3" /> {hunter.skull}
-                        </span>
-                        {hunter.stars > 0 && (
-                          <span className="flex items-center gap-1 text-xs text-primary">
-                            <Star className="w-3 h-3 fill-primary/30" /> {hunter.stars} record{hunter.stars > 1 ? "s" : ""}
-                          </span>
-                        )}
+              {overallRankings
+                .filter(h => h.username.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map((hunter, i) => (
+                  <Card
+                    key={hunter.username}
+                    data-testid={`row-overall-${i}`}
+                    onClick={() => setLocation(`/profile/${hunter.username}`)}
+                    className={cn(
+                      "bg-card/40 border-white/5 backdrop-blur-sm transition-all hover:bg-card/60 cursor-pointer",
+                      i === 0 && "border-yellow-400/30 bg-gradient-to-r from-card/60 to-yellow-400/5"
+                    )}
+                  >
+                    <CardContent className="flex items-center gap-4 p-4">
+                      <div className="flex items-center justify-center w-8 shrink-0">
+                        <RankBadge position={i + 1} />
                       </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-2xl font-display font-bold text-primary">{hunter.points}</div>
-                      <div className="text-xs text-muted-foreground">pts • {hunter.hunts} hunt{hunter.hunts !== 1 ? "s" : ""}</div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-display font-bold text-white text-lg leading-tight truncate">
+                          {hunter.username}
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 flex-wrap">
+                          <span className="flex items-center gap-1 text-xs text-yellow-400">
+                            <Medal className="w-3 h-3 fill-yellow-400/30" /> {hunter.gold}
+                          </span>
+                          <span className="flex items-center gap-1 text-xs text-slate-300">
+                            <Medal className="w-3 h-3 fill-slate-300/30" /> {hunter.silver}
+                          </span>
+                          <span className="flex items-center gap-1 text-xs text-amber-700">
+                            <Medal className="w-3 h-3 fill-amber-700/30" /> {hunter.bronze}
+                          </span>
+                          <span className="flex items-center gap-1 text-xs text-gray-500">
+                            <Skull className="w-3 h-3" /> {hunter.skull}
+                          </span>
+                          {hunter.stars > 0 && (
+                            <span className="flex items-center gap-1 text-xs text-primary">
+                              <Star className="w-3 h-3 fill-primary/30" /> {hunter.stars} record{hunter.stars > 1 ? "s" : ""}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="text-2xl font-display font-bold text-primary">{hunter.points}</div>
+                        <div className="text-xs text-muted-foreground">pts • {hunter.hunts} hunt{hunter.hunts !== 1 ? "s" : ""}</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           )}
         </TabsContent>
@@ -279,8 +308,9 @@ export default function Leaderboard() {
                   <Card
                     key={hunt.id}
                     data-testid={`row-monster-${i}`}
+                    onClick={() => setLocation(`/profile/${hunt.username}`)}
                     className={cn(
-                      "bg-card/40 border-white/5 backdrop-blur-sm transition-all hover:bg-card/60",
+                      "bg-card/40 border-white/5 backdrop-blur-sm transition-all hover:bg-card/60 cursor-pointer",
                       i === 0 && "border-yellow-400/30 bg-gradient-to-r from-card/60 to-yellow-400/5"
                     )}
                   >
@@ -364,8 +394,9 @@ export default function Leaderboard() {
                 <Card
                   key={hunt.id}
                   data-testid={`row-weapon-${i}`}
+                  onClick={() => setLocation(`/profile/${hunt.username}`)}
                   className={cn(
-                    "bg-card/40 border-white/5 backdrop-blur-sm transition-all hover:bg-card/60",
+                    "bg-card/40 border-white/5 backdrop-blur-sm transition-all hover:bg-card/60 cursor-pointer",
                     i === 0 && "border-yellow-400/30 bg-gradient-to-r from-card/60 to-yellow-400/5"
                   )}
                 >
