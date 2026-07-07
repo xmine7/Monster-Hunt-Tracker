@@ -15,8 +15,8 @@ export default function AuthPage() {
   const [activeTab, setActiveTab] = useState("login");
 
   // Login state
-  const [loginUsername, setLoginUsername] = useState("");
-  const [loginHunterId, setLoginHunterId] = useState("");
+  const [loginUsername, setLoginUsername] = useState(() => localStorage.getItem("mhw-login-username") || "");
+  const [loginHunterId, setLoginHunterId] = useState(() => localStorage.getItem("mhw-login-hunter-id") || "");
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [newlyAssignedId, setNewlyAssignedId] = useState<{ username: string; hunterId: string } | null>(null);
@@ -43,6 +43,8 @@ export default function AuthPage() {
         setLoginError(data.error || "Login failed");
         return;
       }
+      localStorage.setItem("mhw-login-username", data.username);
+      localStorage.setItem("mhw-login-hunter-id", data.hunterId);
       // First-time login for old account — show them their new Hunter ID
       if (data.isNewHunterId) {
         setNewlyAssignedId({ username: data.username, hunterId: data.hunterId });
