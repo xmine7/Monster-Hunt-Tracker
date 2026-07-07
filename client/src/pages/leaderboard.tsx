@@ -196,14 +196,14 @@ export default function Leaderboard() {
 
       {/* Tabs */}
       <Tabs defaultValue="overall">
-        <TabsList className="bg-card/50 border border-white/10 w-full grid grid-cols-3">
-          <TabsTrigger value="overall" className="data-[state=active]:bg-primary data-[state=active]:text-background font-bold gap-1.5 py-2.5 text-xs">
+        <TabsList className="bg-card/50 border border-white/10 w-full flex">
+          <TabsTrigger value="overall" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-background font-bold gap-1.5 py-2.5 text-xs">
             <Trophy className="w-3.5 h-3.5 shrink-0" /> Overall
           </TabsTrigger>
-          <TabsTrigger value="monster" className="data-[state=active]:bg-primary data-[state=active]:text-background font-bold gap-1.5 py-2.5 text-xs">
+          <TabsTrigger value="monster" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-background font-bold gap-1.5 py-2.5 text-xs">
             <Skull className="w-3.5 h-3.5 shrink-0" /> Monster
           </TabsTrigger>
-          <TabsTrigger value="weapon" className="data-[state=active]:bg-primary data-[state=active]:text-background font-bold gap-1.5 py-2.5 text-xs">
+          <TabsTrigger value="weapon" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-background font-bold gap-1.5 py-2.5 text-xs">
             <Swords className="w-3.5 h-3.5 shrink-0" /> Weapon
           </TabsTrigger>
         </TabsList>
