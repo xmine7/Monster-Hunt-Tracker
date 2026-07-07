@@ -970,7 +970,7 @@ export default function Dashboard() {
       </AlertDialog>
 
       {/* Reset Section */}
-      <div className="flex justify-center pt-8 pb-4 border-t border-white/5">
+      <div className="flex justify-center gap-4 pt-8 pb-4 border-t border-white/5 flex-wrap">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="ghost" className="text-muted-foreground hover:text-destructive hover:bg-destructive/10">
@@ -988,6 +988,36 @@ export default function Dashboard() {
               <AlertDialogCancel className="bg-transparent border-white/10 hover:bg-white/5 hover:text-white">Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={handleReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                 <Trash2 className="w-4 h-4 mr-2" /> Reset Everything
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" className="text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+              <User className="w-4 h-4 mr-2" /> Delete Account
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="bg-card border-white/10 text-slate-200">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+              <AlertDialogDescription className="text-muted-foreground">
+                This will permanently delete your account and all your hunt records. This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-transparent border-white/10 hover:bg-white/5 hover:text-white">Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={async () => {
+                  await fetch("/api/me", { method: "DELETE" });
+                  localStorage.removeItem("mhw-login-username");
+                  localStorage.removeItem("mhw-login-hunter-id");
+                  setLocation("/auth");
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                <Trash2 className="w-4 h-4 mr-2" /> Delete Account
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

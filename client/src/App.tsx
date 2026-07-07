@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import AuthPage from "@/pages/auth-page";
 import Leaderboard from "@/pages/leaderboard";
+import ProfilePage from "@/pages/profile";
 import { useUser } from "@/hooks/use-user";
 import { useEffect } from "react";
 
@@ -61,6 +62,7 @@ function Router() {
     <Switch>
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/leaderboard" component={() => <ProtectedRoute component={Leaderboard} />} />
+      <Route path="/profile/:username" component={() => <ProtectedRoute component={ProfilePage} />} />
       <Route path="/auth" component={() => <GuestRoute component={AuthPage} />} />
       <Route component={NotFound} />
     </Switch>

@@ -21,6 +21,8 @@ export interface IStorage {
   updateHunt(userId: string, monsterId: string, weaponId: string, mode: string, hunt: InsertHunt & { date?: Date }): Promise<Hunt>;
   deleteHuntsByMode(userId: string, mode: string): Promise<void>;
   deleteAllHunts(userId: string): Promise<void>;
+  deleteUser(userId: string): Promise<void>;
+  getPublicProfile(username: string): Promise<{ user: User; hunts: Hunt[] } | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -118,6 +120,18 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHuntsByMode(userId: string, mode: string): Promise<void> {
     await db.delete(hunts).where(and(eq(hunts.userId, userId), eq(hunts.mode, mode)));
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    await db.delete(hunts).where(eq(hunts.userId, userId));
+    await db.delete(users).where(eq(users.id, userId));
+  }
+
+  async getPublicProfile(username: string): Promise<{ user: User; hunts: Hunt[] } | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    if (!user) return undefined;
+    const userHunts = await db.select().from(hunts).where(and(eq(hunts.userId, user.id), eq(hunts.isPb, true)));
+    return { user, hunts: userHunts };
   }
 
   async deleteAllHunts(userId: string): Promise<void> {

@@ -142,6 +142,26 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/profile/:username", requireAuth, async (req, res) => {
+    try {
+      const profile = await storage.getPublicProfile(req.params.username);
+      if (!profile) return res.status(404).json({ error: "Hunter not found" });
+      res.json({ username: profile.user.username, hunterId: profile.user.hunterId, hunts: profile.hunts });
+    } catch {
+      res.status(500).json({ error: "Failed to fetch profile" });
+    }
+  });
+
+  app.delete("/api/me", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      await storage.deleteUser(userId);
+      req.session.destroy(() => res.json({ success: true }));
+    } catch {
+      res.status(500).json({ error: "Failed to delete account" });
+    }
+  });
+
   app.get("/api/leaderboard", requireAuth, async (req, res) => {
     try {
       const allHunts = await storage.getAllHuntsWithUsers();

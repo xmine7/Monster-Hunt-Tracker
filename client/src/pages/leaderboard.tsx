@@ -190,9 +190,12 @@ export default function Leaderboard() {
                       <RankBadge position={i + 1} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-display font-bold text-white text-lg leading-tight truncate">
+                      <button
+                        onClick={() => setLocation(`/profile/${hunter.username}`)}
+                        className="font-display font-bold text-white text-lg leading-tight truncate hover:text-primary transition-colors text-left"
+                      >
                         {hunter.username}
-                      </div>
+                      </button>
                       <div className="flex items-center gap-3 mt-1 flex-wrap">
                         <span className="flex items-center gap-1 text-xs text-yellow-400">
                           <Medal className="w-3 h-3 fill-yellow-400/30" /> {hunter.gold}
