@@ -20,6 +20,7 @@ export const hunts = pgTable("hunts", {
   date: timestamp("date").notNull().defaultNow(),
   attempts: integer("attempts").notNull().default(1),
   mode: text("mode").notNull().default("solo"),
+  videoUrl: text("video_url"),
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, password: true, hunterId: true });

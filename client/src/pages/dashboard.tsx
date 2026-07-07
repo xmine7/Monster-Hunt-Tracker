@@ -9,7 +9,7 @@ import {
   Skull, Medal, Star, Diamond, 
   Plus, Trophy, Swords,
   TrendingUp, TrendingDown, RotateCcw, Trash2, Undo2, Shuffle, Dices,
-  LogOut, User
+  LogOut, User, Link, Users, UserRound
 } from "lucide-react";
 import { useUser, useLogout } from "@/hooks/use-user";
 import { useLocation } from "wouter";
@@ -55,7 +55,7 @@ function RankIcon({ rank, className }: { rank: Rank, className?: string }) {
   }
 }
 
-type HuntMode = "solo";
+type HuntMode = "solo" | "duo" | "squad";
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -63,7 +63,7 @@ export default function Dashboard() {
   const logout = useLogout();
   const [, setLocation] = useLocation();
 
-  const mode: HuntMode = "solo";
+  const [mode, setMode] = useState<HuntMode>("solo");
 
   // Fetch hunts from API by mode
   const { data: hunts = [], isLoading } = useQuery({
@@ -82,6 +82,7 @@ export default function Dashboard() {
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [huntToDelete, setHuntToDelete] = useState<HuntRecord | null>(null);
+  const [videoUrl, setVideoUrl] = useState("");
 
   // History for Undo functionality
   const [history, setHistory] = useState<HuntRecord[][]>([]);
@@ -353,10 +354,12 @@ export default function Dashboard() {
       isPb: true,
       attempts: existingHunt ? (existingHunt.attempts || 1) + 1 : 1,
       mode: mode,
+      videoUrl: videoUrl.trim() || null,
     });
 
     setIsAddOpen(false);
     setTimeInput("");
+    setVideoUrl("");
   };
 
   const handleUndo = () => {
@@ -495,9 +498,26 @@ export default function Dashboard() {
         {/* Left Column: Weapon Stats */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="text-2xl font-display font-bold flex items-center gap-2">
-              <Swords className="w-6 h-6 text-primary" /> Weapon Performance
-            </h2>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="text-2xl font-display font-bold flex items-center gap-2">
+                <Swords className="w-6 h-6 text-primary" /> Weapon Performance
+              </h2>
+              <div className="flex rounded-lg border border-white/10 overflow-hidden text-xs font-bold">
+                {(["solo", "duo", "squad"] as HuntMode[]).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    className={cn(
+                      "px-3 py-1.5 capitalize transition-colors",
+                      mode === m ? "bg-primary text-background" : "bg-background/30 text-muted-foreground hover:text-white"
+                    )}
+                  >
+                    {m === "solo" ? <UserRound className="w-3.5 h-3.5 inline mr-1" /> : <Users className="w-3.5 h-3.5 inline mr-1" />}
+                    {m}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="flex items-center gap-3">
               <Button 
                 variant="outline" 
@@ -520,7 +540,7 @@ export default function Dashboard() {
                 </SelectContent>
               </Select>
 
-              <Dialog open={isAddOpen} onOpenChange={(open) => { setIsAddOpen(open); if (!open) { setTimeWarning(""); setTimeInput(""); } }}>
+              <Dialog open={isAddOpen} onOpenChange={(open) => { setIsAddOpen(open); if (!open) { setTimeWarning(""); setTimeInput(""); setVideoUrl(""); } }}>
                 <DialogTrigger asChild>
                   <Button className="bg-primary text-background hover:bg-primary/90 font-display font-bold tracking-wider h-9">
                     <Plus className="w-4 h-4 mr-2" /> Log Hunt
@@ -568,6 +588,15 @@ export default function Dashboard() {
                       value={timeInput}
                       onChange={(e) => { setTimeInput(e.target.value); setTimeWarning(""); }}
                       className="bg-background/50 border-white/10 font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Proof Link <span className="text-muted-foreground text-xs font-normal">(optional — YouTube, clip, etc.)</span></Label>
+                    <Input
+                      placeholder="https://youtube.com/..."
+                      value={videoUrl}
+                      onChange={(e) => setVideoUrl(e.target.value)}
+                      className="bg-background/50 border-white/10 text-sm"
                     />
                   </div>
                   {timeWarning && (
@@ -638,6 +667,18 @@ export default function Dashboard() {
                               {rank && <RankIcon rank={rank} className="w-4 h-4" />}
                               {hunt && stats.bestHuntPerMonster[hunt.monsterId] === hunt.id && (
                                 <Star className="w-3 h-3 text-accent fill-accent" />
+                              )}
+                              {hunt?.videoUrl && (
+                                <a
+                                  href={hunt.videoUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-primary/60 hover:text-primary transition-colors"
+                                  title="Watch proof"
+                                >
+                                  <Link className="w-3.5 h-3.5" />
+                                </a>
                               )}
                               {hunt && (
                                 <button

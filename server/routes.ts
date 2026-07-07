@@ -41,11 +41,8 @@ export async function registerRoutes(
         return res.status(400).json({ error: "That username is already taken — pick another one!" });
       }
       const user = await storage.createUser({ username: username.trim() });
-      req.session.userId = user.id;
-      req.session.save((err) => {
-        if (err) return res.status(500).json({ error: "Registration failed, try again" });
-        res.json({ id: user.id, username: user.username });
-      });
+      // Don't auto-login — user must see their Hunter ID first, then login manually
+      res.json({ id: user.id, username: user.username, hunterId: user.hunterId });
     } catch (err) {
       res.status(500).json({ error: "Registration failed" });
     }
@@ -58,23 +55,26 @@ export async function registerRoutes(
       if (!username || !username.trim()) {
         return res.status(400).json({ error: "Username or Hunter ID is required" });
       }
+      const { hunterId } = req.body;
       const input = username.trim();
-      // Try username first, then hunter ID (digits only)
+      // Find by username
       let user = await storage.getUserByUsername(input);
-      if (!user && /^\d+$/.test(input)) {
-        user = await storage.getUserByHunterId(input);
-      }
       if (!user) {
-        return res.status(401).json({ error: "Not found — check your username or Hunter ID" });
+        return res.status(401).json({ error: "Username not found" });
       }
+      const hadNoHunterId = !user.hunterId;
       // Auto-assign Hunter ID to older accounts that don't have one yet
       if (!user.hunterId) {
         user = await storage.assignHunterId(user.id) ?? user;
       }
+      // If they already had a Hunter ID, require it to match
+      if (!hadNoHunterId && (!hunterId || user.hunterId !== hunterId.trim())) {
+        return res.status(401).json({ error: "Incorrect Hunter ID" });
+      }
       req.session.userId = user.id;
       req.session.save((err) => {
         if (err) return res.status(500).json({ error: "Login failed, try again" });
-        res.json({ id: user!.id, username: user!.username, hunterId: user!.hunterId });
+        res.json({ id: user!.id, username: user!.username, hunterId: user!.hunterId, isNewHunterId: hadNoHunterId });
       });
     } catch (err) {
       res.status(500).json({ error: "Login failed" });

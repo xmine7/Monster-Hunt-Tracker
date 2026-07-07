@@ -95,6 +95,11 @@ app.use((req, res, next) => {
     ALTER TABLE users ADD COLUMN IF NOT EXISTS hunter_id TEXT UNIQUE
   `).catch(() => {});
 
+  // Add video_url column for hunt proof links
+  await pool.query(`
+    ALTER TABLE hunts ADD COLUMN IF NOT EXISTS video_url TEXT
+  `).catch(() => {});
+
   // Make password nullable (migrating to username-only login)
   await pool.query(`
     ALTER TABLE users ALTER COLUMN password DROP NOT NULL

@@ -22,6 +22,7 @@ export interface HuntRecord {
   isPb: boolean;
   date: Date;
   attempts?: number;
+  videoUrl?: string | null;
 }
 
 export const MONSTERS: Monster[] = [

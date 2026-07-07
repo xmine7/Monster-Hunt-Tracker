@@ -1,24 +1,32 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Trophy, Swords, Shield } from "lucide-react";
+import { Trophy, Swords, Shield, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
+  const [activeTab, setActiveTab] = useState("login");
+
+  // Login state
   const [loginUsername, setLoginUsername] = useState("");
+  const [loginHunterId, setLoginHunterId] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [newlyAssignedId, setNewlyAssignedId] = useState<{ username: string; hunterId: string } | null>(null);
 
+  // Register state
   const [regUsername, setRegUsername] = useState("");
   const [regError, setRegError] = useState("");
   const [regLoading, setRegLoading] = useState(false);
+  const [regSuccess, setRegSuccess] = useState<{ username: string; hunterId: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,11 +36,17 @@ export default function AuthPage() {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: loginUsername }),
+        body: JSON.stringify({ username: loginUsername, hunterId: loginHunterId }),
       });
       const data = await res.json();
       if (!res.ok) {
         setLoginError(data.error || "Login failed");
+        return;
+      }
+      // First-time login for old account — show them their new Hunter ID
+      if (data.isNewHunterId) {
+        setNewlyAssignedId({ username: data.username, hunterId: data.hunterId });
+        queryClient.setQueryData(["/api/me"], data);
         return;
       }
       queryClient.setQueryData(["/api/me"], data);
@@ -59,13 +73,28 @@ export default function AuthPage() {
         setRegError(data.error || "Registration failed");
         return;
       }
-      queryClient.setQueryData(["/api/me"], data);
-      setLocation("/");
+      setRegSuccess({ username: data.username, hunterId: data.hunterId });
     } catch {
       setRegError("Something went wrong. Try again.");
     } finally {
       setRegLoading(false);
     }
+  };
+
+  const handleCopyId = () => {
+    if (!regSuccess) return;
+    navigator.clipboard.writeText(regSuccess.hunterId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleProceedToLogin = () => {
+    if (!regSuccess) return;
+    setLoginUsername(regSuccess.username);
+    setLoginHunterId(regSuccess.hunterId);
+    setRegSuccess(null);
+    setRegUsername("");
+    setActiveTab("login");
   };
 
   return (
@@ -84,7 +113,27 @@ export default function AuthPage() {
         </p>
       </div>
 
-      <Card className="w-full max-w-md bg-card/60 border-white/10 backdrop-blur-md">
+      {newlyAssignedId && (
+        <Card className="w-full max-w-md bg-card/60 border-white/10 backdrop-blur-md mb-4">
+          <CardContent className="pt-6 text-center space-y-5">
+            <p className="text-sm text-muted-foreground">Welcome back, <span className="text-white font-bold">{newlyAssignedId.username}</span>! A Hunter ID has been assigned to your account:</p>
+            <div className="flex items-center justify-center gap-3">
+              <span className="text-5xl font-mono font-bold text-primary tracking-widest">{newlyAssignedId.hunterId}</span>
+              <button onClick={handleCopyId} className="text-muted-foreground hover:text-white transition-colors" title="Copy ID">
+                {copied ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
+              </button>
+            </div>
+            <p className="text-xs text-amber-400/80 bg-amber-400/10 border border-amber-400/20 rounded px-3 py-2">
+              ⚠️ Save this — you'll need it along with your username to login from now on!
+            </p>
+            <Button onClick={() => setLocation("/")} className="w-full bg-primary text-background font-display font-bold tracking-wider">
+              Enter the Hunt
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {!newlyAssignedId && <Card className="w-full max-w-md bg-card/60 border-white/10 backdrop-blur-md">
         <CardHeader className="text-center pb-2">
           <CardTitle className="font-display text-xl text-white flex items-center justify-center gap-2">
             <Shield className="w-5 h-5 text-primary" /> Hunter's Guild
@@ -97,7 +146,7 @@ export default function AuthPage() {
           </p>
         </CardHeader>
         <CardContent className="pt-4">
-          <Tabs defaultValue="login">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full bg-background/50 border border-white/10 mb-6">
               <TabsTrigger value="login" className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-background font-bold">
                 Login
@@ -110,15 +159,28 @@ export default function AuthPage() {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Username or Hunter ID</Label>
+                  <Label className="text-slate-300">Username</Label>
                   <Input
                     data-testid="input-login-username"
                     value={loginUsername}
                     onChange={(e) => setLoginUsername(e.target.value)}
-                    placeholder="Your name or 4-digit ID (e.g. 4821)"
+                    placeholder="Your hunter name"
                     className="bg-background/50 border-white/10 text-white placeholder:text-muted-foreground"
                     required
                     autoComplete="username"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Hunter ID</Label>
+                  <Input
+                    data-testid="input-login-hunter-id"
+                    value={loginHunterId}
+                    onChange={(e) => setLoginHunterId(e.target.value)}
+                    placeholder="Your 4-digit ID (e.g. 4821)"
+                    className="bg-background/50 border-white/10 text-white placeholder:text-muted-foreground font-mono"
+                    required
+                    maxLength={4}
+                    inputMode="numeric"
                   />
                 </div>
                 {loginError && (
@@ -138,40 +200,72 @@ export default function AuthPage() {
             </TabsContent>
 
             <TabsContent value="register">
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-slate-300">Choose a Username</Label>
-                  <Input
-                    data-testid="input-register-username"
-                    value={regUsername}
-                    onChange={(e) => setRegUsername(e.target.value)}
-                    placeholder="Pick a unique hunter name"
-                    className="bg-background/50 border-white/10 text-white placeholder:text-muted-foreground"
-                    required
-                    autoComplete="username"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Once registered, your username is yours — nobody else can take it.
+              {regSuccess ? (
+                <div className="text-center space-y-5 py-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Account created! Your Hunter ID is:</p>
+                    <div className="flex items-center justify-center gap-3 mt-3">
+                      <span className="text-5xl font-mono font-bold text-primary tracking-widest">{regSuccess.hunterId}</span>
+                      <button
+                        onClick={handleCopyId}
+                        className="text-muted-foreground hover:text-white transition-colors"
+                        title="Copy ID"
+                      >
+                        {copied ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-amber-400/80 bg-amber-400/10 border border-amber-400/20 rounded px-3 py-2">
+                    ⚠️ Save this ID — you'll need it along with your username to login!
                   </p>
+                  <Button
+                    data-testid="button-proceed-to-login"
+                    onClick={handleProceedToLogin}
+                    className="w-full bg-primary text-background hover:bg-primary/90 font-display font-bold tracking-wider"
+                  >
+                    Proceed to Login
+                  </Button>
                 </div>
-                {regError && (
-                  <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded px-3 py-2">
-                    {regError}
-                  </p>
-                )}
-                <Button
-                  data-testid="button-register"
-                  type="submit"
-                  className="w-full bg-primary text-background hover:bg-primary/90 font-display font-bold tracking-wider"
-                  disabled={regLoading}
-                >
-                  {regLoading ? "Creating account..." : "Register Hunter"}
-                </Button>
-              </form>
+              ) : (
+                <form onSubmit={handleRegister} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-slate-300">Choose a Username</Label>
+                    <Input
+                      data-testid="input-register-username"
+                      value={regUsername}
+                      onChange={(e) => setRegUsername(e.target.value)}
+                      placeholder="Pick a unique hunter name"
+                      className="bg-background/50 border-white/10 text-white placeholder:text-muted-foreground"
+                      required
+                      autoComplete="username"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      A unique 4-digit Hunter ID will be assigned to your account — you'll need both to login.
+                    </p>
+                  </div>
+                  {regError && (
+                    <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded px-3 py-2">
+                      {regError}
+                    </p>
+                  )}
+                  <Button
+                    data-testid="button-register"
+                    type="submit"
+                    className="w-full bg-primary text-background hover:bg-primary/90 font-display font-bold tracking-wider"
+                    disabled={regLoading}
+                  >
+                    {regLoading ? "Creating account..." : "Register Hunter"}
+                  </Button>
+                </form>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
-      </Card>
+      </Card>}
+
+      <p className="text-xs text-muted-foreground/50 mt-6 text-center">
+        Made with <a href="https://replit.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Replit AI</a>
+      </p>
     </div>
   );
 }
