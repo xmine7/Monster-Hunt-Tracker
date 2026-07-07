@@ -2,9 +2,10 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { MONSTERS, WEAPONS, getRank, getPoints, formatTime } from "@/lib/mh-data";
-import { Trophy, ArrowLeft, Medal, Star, Skull, Crown, Swords, Clock, ChevronDown } from "lucide-react";
+import { Trophy, ArrowLeft, Medal, Star, Skull, Crown, Swords, Clock, ChevronDown, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ export default function Leaderboard() {
   const [, setLocation] = useLocation();
   const [selectedMonster, setSelectedMonster] = useState(MONSTERS[0].id);
   const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0].id);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: allHunts = [], isLoading } = useQuery<HuntWithUser[]>({
     queryKey: ["/api/leaderboard"],
@@ -152,6 +154,17 @@ export default function Leaderboard() {
         </div>
       </header>
 
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Search hunter..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 bg-card/50 border-white/10 text-white placeholder:text-muted-foreground"
+        />
+      </div>
+
       {/* Tabs */}
       <Tabs defaultValue="overall">
         <TabsList className="bg-card/50 border border-white/10 w-full grid grid-cols-3">
@@ -176,7 +189,7 @@ export default function Leaderboard() {
             </Card>
           ) : (
             <div className="space-y-3">
-              {overallRankings.map((hunter, i) => (
+              {overallRankings.filter(h => h.username.toLowerCase().includes(searchQuery.toLowerCase())).map((hunter, i) => (
                 <Card
                   key={hunter.username}
                   data-testid={`row-overall-${i}`}

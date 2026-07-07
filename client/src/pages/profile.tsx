@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { MONSTERS, WEAPONS, getRank, formatTime } from "@/lib/mh-data";
-import { ArrowLeft, Skull, Medal, Star, User, Swords, Link } from "lucide-react";
+import { ArrowLeft, Skull, Medal, User, Swords, Link } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
 
 type ProfileHunt = {
@@ -29,7 +30,9 @@ function RankIcon({ rank, className }: { rank: string; className?: string }) {
 export default function ProfilePage() {
   const params = useParams<{ username: string }>();
   const [, setLocation] = useLocation();
+  const { user: currentUser } = useUser();
   const username = params.username;
+  const isOwnProfile = currentUser?.username === username;
 
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ["profile", username],
@@ -91,7 +94,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <h1 className="text-3xl font-display font-bold text-white">{profile.username}</h1>
-                {profile.hunterId && (
+                {isOwnProfile && profile.hunterId && (
                   <p className="text-sm text-muted-foreground font-mono">Hunter ID: {profile.hunterId}</p>
                 )}
               </div>
