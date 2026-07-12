@@ -1203,19 +1203,17 @@ export default function Dashboard() {
                 const bestWeapon = best ? WEAPONS.find(w => w.id === best.weaponId) : null;
                 const rank = best ? getRank(best.timeSeconds) : null;
                 return (
-                  <div key={monster.id} className="flex items-center justify-between text-sm py-1.5 border-b border-white/5 last:border-0">
-                    <div className="flex items-center gap-2">
-                      <monster.icon className={cn("w-4 h-4", best ? monster.color : "text-muted-foreground/30")} />
-                      {best ? (
-                        <div className="flex items-center gap-1.5 leading-none">
-                          <span className="font-mono text-slate-200">{formatTime(best.timeSeconds)}</span>
-                          {bestWeapon && <img src={bestWeapon.sprite} alt={bestWeapon.name} title={bestWeapon.name} className="w-4 h-4 object-contain" />}
-                        </div>
-                      ) : (
-                        <span className="font-mono text-muted-foreground/40 italic text-xs">tbd</span>
-                      )}
-                    </div>
-                    {rank && <RankIcon rank={rank} className="w-4 h-4" />}
+                  <div key={monster.id} className="flex items-center justify-center gap-2 text-sm py-1.5 border-b border-white/5 last:border-0">
+                    <monster.icon className={cn("w-4 h-4 shrink-0", best ? monster.color : "text-muted-foreground/30")} />
+                    {best ? (
+                      <>
+                        <span className="font-mono text-slate-200">{formatTime(best.timeSeconds)}</span>
+                        {bestWeapon && <img src={bestWeapon.sprite} alt={bestWeapon.name} title={bestWeapon.name} className="w-4 h-4 object-contain shrink-0" />}
+                        {rank && <RankIcon rank={rank} className="w-4 h-4 shrink-0" />}
+                      </>
+                    ) : (
+                      <span className="font-mono text-muted-foreground/40 italic text-xs">tbd</span>
+                    )}
                   </div>
                 );
               })}

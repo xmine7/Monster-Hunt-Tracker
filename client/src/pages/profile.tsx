@@ -48,7 +48,7 @@ function ModeCard({ mode, hunts }: { mode: string; hunts: ProfileHunt[] }) {
   });
 
   return (
-    <Card className="bg-card/40 border-white/5 flex-1 min-w-0">
+    <Card className="bg-card/40 border-white/5 w-full">
       <CardHeader className="pb-2 pt-4 px-4">
         <CardTitle className="text-xs font-display uppercase tracking-widest text-primary">{mode}</CardTitle>
       </CardHeader>
@@ -58,27 +58,23 @@ function ModeCard({ mode, hunts }: { mode: string; hunts: ProfileHunt[] }) {
           const weapon = best ? WEAPONS.find(w => w.id === best.weaponId) : null;
           const rank = best ? getRank(best.timeSeconds) : null;
           return (
-            <div key={monster.id} className="flex items-center justify-between gap-1 text-xs">
-              <div className="flex items-center gap-1.5 min-w-0">
-                {rank ? <RankIcon rank={rank} className="w-3.5 h-3.5 shrink-0" /> : <span className="w-3.5 h-3.5 shrink-0" />}
-                <monster.icon className={cn("w-3.5 h-3.5 shrink-0", monster.color)} />
-                {best ? (
-                  <>
-                    <span className="font-mono text-slate-200 font-medium">{formatTime(best.timeSeconds)}</span>
-                    {weapon && <img src={weapon.sprite} alt={weapon.name} title={weapon.name} className="w-3.5 h-3.5 object-contain shrink-0" />}
-                  </>
-                ) : (
-                  <span className="text-muted-foreground/30">—</span>
-                )}
-              </div>
-              {best?.videoUrl && (
-                <div className="flex items-center gap-1 shrink-0">
-                  <a href={best.videoUrl} target="_blank" rel="noopener noreferrer"
-                    className="text-primary/50 hover:text-primary transition-colors"
-                    onClick={e => e.stopPropagation()}>
-                    <Link className="w-3 h-3" />
-                  </a>
-                </div>
+            <div key={monster.id} className="flex items-center justify-center gap-2 text-xs py-0.5">
+              <monster.icon className={cn("w-3.5 h-3.5 shrink-0", best ? monster.color : "text-muted-foreground/30")} />
+              {best ? (
+                <>
+                  <span className="font-mono text-slate-200 font-medium">{formatTime(best.timeSeconds)}</span>
+                  {weapon && <img src={weapon.sprite} alt={weapon.name} title={weapon.name} className="w-3.5 h-3.5 object-contain shrink-0" />}
+                  {rank && <RankIcon rank={rank} className="w-3.5 h-3.5 shrink-0" />}
+                  {best.videoUrl && (
+                    <a href={best.videoUrl} target="_blank" rel="noopener noreferrer"
+                      className="text-primary/50 hover:text-primary transition-colors"
+                      onClick={e => e.stopPropagation()}>
+                      <Link className="w-3 h-3" />
+                    </a>
+                  )}
+                </>
+              ) : (
+                <span className="text-muted-foreground/30">—</span>
               )}
             </div>
           );
@@ -277,7 +273,7 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="flex gap-3">
+            <div className="space-y-3">
               {visibleModeCards.map(({ mode, hunts }) => (
                 <ModeCard key={mode} mode={mode} hunts={hunts} />
               ))}
@@ -342,15 +338,11 @@ export default function ProfilePage() {
                       return (
                         <div key={hunt.id}
                           className="px-4 py-3 border-b border-white/5 last:border-0">
-                          <div className="flex items-center gap-3 text-sm">
-                            <RankIcon rank={rank} className="w-4 h-4 shrink-0" />
+                          <div className="flex items-center gap-2 text-sm">
                             {monster && <monster.icon className={cn("w-4 h-4 shrink-0", monster.color)} />}
-                            <div className="flex-1 min-w-0">
+                            <div className="flex-1 min-w-0 flex items-center gap-1.5 flex-wrap">
                               <span className="text-slate-300 text-xs">{monster?.name}</span>
-                              <span className="text-muted-foreground/40 text-xs ml-1 capitalize">({hunt.mode})</span>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              {weapon && <img src={weapon.sprite} alt={weapon.name} title={weapon.name} className="w-4 h-4 object-contain " />}
+                              <span className="text-muted-foreground/40 text-xs capitalize">({hunt.mode})</span>
                               {hunt.videoUrl && (
                                 <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
                                   title="Watch proof" className="text-primary/50 hover:text-primary transition-colors">
@@ -376,7 +368,11 @@ export default function ProfilePage() {
                                   <MessageSquare className="w-3.5 h-3.5" />
                                 </button>
                               )}
-                              <span className="font-mono text-slate-200 font-medium ml-1">{formatTime(hunt.timeSeconds)}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {weapon && <img src={weapon.sprite} alt={weapon.name} title={weapon.name} className="w-4 h-4 object-contain" />}
+                              <RankIcon rank={rank} className="w-4 h-4" />
+                              <span className="font-mono text-slate-200 font-medium">{formatTime(hunt.timeSeconds)}</span>
                             </div>
                           </div>
                         </div>
