@@ -12,6 +12,7 @@ export interface Monster {
 export interface Weapon {
   id: string;
   name: string;
+  sprite: string;
 }
 
 export interface HuntRecord {
@@ -34,20 +35,20 @@ export const MONSTERS: Monster[] = [
 ];
 
 export const WEAPONS: Weapon[] = [
-  { id: "gs", name: "Great Sword" },
-  { id: "ls", name: "Long Sword" },
-  { id: "sns", name: "Sword and Shield" },
-  { id: "db", name: "Dual Blades" },
-  { id: "hammer", name: "Hammer" },
-  { id: "hh", name: "Hunting Horn" },
-  { id: "lance", name: "Lance" },
-  { id: "gl", name: "Gunlance" },
-  { id: "sa", name: "Switch Axe" },
-  { id: "cb", name: "Charge Blade" },
-  { id: "ig", name: "Insect Glaive" },
-  { id: "lbg", name: "Light Bowgun" },
-  { id: "hbg", name: "Heavy Bowgun" },
-  { id: "bow", name: "Bow" },
+  { id: "gs",     name: "Great Sword",      sprite: "/weapons/gs.png" },
+  { id: "ls",     name: "Long Sword",        sprite: "/weapons/ls.png" },
+  { id: "sns",    name: "Sword and Shield",  sprite: "/weapons/sns.png" },
+  { id: "db",     name: "Dual Blades",       sprite: "/weapons/db.png" },
+  { id: "hammer", name: "Hammer",            sprite: "/weapons/hammer.png" },
+  { id: "hh",     name: "Hunting Horn",      sprite: "/weapons/hh.png" },
+  { id: "lance",  name: "Lance",             sprite: "/weapons/lance.png" },
+  { id: "gl",     name: "Gunlance",          sprite: "/weapons/gl.png" },
+  { id: "sa",     name: "Switch Axe",        sprite: "/weapons/sa.png" },
+  { id: "cb",     name: "Charge Blade",      sprite: "/weapons/cb.png" },
+  { id: "ig",     name: "Insect Glaive",     sprite: "/weapons/ig.png" },
+  { id: "lbg",    name: "Light Bowgun",      sprite: "/weapons/lbg.png" },
+  { id: "hbg",    name: "Heavy Bowgun",      sprite: "/weapons/hbg.png" },
+  { id: "bow",    name: "Bow",               sprite: "/weapons/bow.png" },
 ];
 
 export function getRank(timeSeconds: number): Rank {

@@ -361,7 +361,10 @@ export default function Leaderboard() {
                         <div className="font-display font-bold text-white text-lg leading-tight">
                           {hunt.username}
                         </div>
-                        <div className="text-sm text-muted-foreground">{weapon?.name ?? hunt.weaponId}</div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-1.5">
+                          {weapon && <img src={weapon.sprite} alt={weapon.name} className="w-4 h-4 object-contain opacity-60 invert" />}
+                          {weapon?.name ?? hunt.weaponId}
+                        </div>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         <HuntIcons hunt={hunt}
@@ -413,7 +416,12 @@ export default function Leaderboard() {
               </SelectTrigger>
               <SelectContent className="bg-card border-white/10 text-slate-200 max-h-[40vh] overflow-y-auto">
                 {WEAPONS.map((w) => (
-                  <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
+                  <SelectItem key={w.id} value={w.id}>
+                    <span className="flex items-center gap-2">
+                      <img src={w.sprite} alt="" className="w-4 h-4 object-contain opacity-70 invert" />
+                      {w.name}
+                    </span>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
