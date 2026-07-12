@@ -60,6 +60,7 @@ function ModeCard({ mode, hunts }: { mode: string; hunts: ProfileHunt[] }) {
           return (
             <div key={monster.id} className="flex items-center justify-between gap-1 text-xs">
               <div className="flex items-center gap-1.5 min-w-0">
+                {rank ? <RankIcon rank={rank} className="w-3.5 h-3.5 shrink-0" /> : <span className="w-3.5 h-3.5 shrink-0" />}
                 <monster.icon className={cn("w-3.5 h-3.5 shrink-0", monster.color)} />
                 {best ? (
                   <span className="font-mono text-slate-200 font-medium">{formatTime(best.timeSeconds)}</span>
@@ -67,9 +68,8 @@ function ModeCard({ mode, hunts }: { mode: string; hunts: ProfileHunt[] }) {
                   <span className="text-muted-foreground/30">—</span>
                 )}
               </div>
-              {best && rank ? (
+              {best && (
                 <div className="flex items-center gap-1 shrink-0">
-                  <RankIcon rank={rank} className="w-3.5 h-3.5" />
                   {best.videoUrl && (
                     <a href={best.videoUrl} target="_blank" rel="noopener noreferrer"
                       className="text-primary/50 hover:text-primary transition-colors"
@@ -78,7 +78,7 @@ function ModeCard({ mode, hunts }: { mode: string; hunts: ProfileHunt[] }) {
                     </a>
                   )}
                 </div>
-              ) : null}
+              )}
             </div>
           );
         })}
@@ -349,34 +349,30 @@ export default function ProfilePage() {
                               <span className="text-muted-foreground/50 text-xs"> · {weapon?.name}</span>
                               <span className="text-muted-foreground/40 text-xs ml-1 capitalize">({hunt.mode})</span>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center gap-1.5 shrink-0">
                               {hunt.videoUrl && (
                                 <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
                                   onClick={e => e.stopPropagation()}
-                                  className="text-primary/60 hover:text-primary transition-colors" title="Watch proof">
-                                  <Link className="w-3.5 h-3.5" />
-                                </a>
+                                  className="w-5 h-5 rounded border border-primary/40 text-primary/70 hover:border-primary hover:text-primary bg-primary/5 text-[10px] font-bold flex items-center justify-center transition-colors"
+                                  title="Watch proof">1</a>
                               )}
                               {hunt.buildUrl && (
                                 hunt.buildUrl.startsWith("data:") ? (
                                   <button onClick={e => { e.stopPropagation(); setBuildModalUrl(hunt.buildUrl!); }}
-                                    className="text-yellow-500/60 hover:text-yellow-400 transition-colors" title="View build">
-                                    <Star className="w-3.5 h-3.5" />
-                                  </button>
+                                    className="w-5 h-5 rounded border border-yellow-500/40 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400 bg-yellow-500/5 text-[10px] font-bold flex items-center justify-center transition-colors"
+                                    title="View build">2</button>
                                 ) : (
                                   <a href={hunt.buildUrl} target="_blank" rel="noopener noreferrer"
                                     onClick={e => e.stopPropagation()}
-                                    className="text-yellow-500/60 hover:text-yellow-400 transition-colors" title="View build">
-                                    <Star className="w-3.5 h-3.5" />
-                                  </a>
+                                    className="w-5 h-5 rounded border border-yellow-500/40 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400 bg-yellow-500/5 text-[10px] font-bold flex items-center justify-center transition-colors"
+                                    title="View build">2</a>
                                 )
                               )}
                               {hunt.notes && (
-                                <span title={hunt.notes} className="text-slate-400/60 cursor-default" onClick={e => e.stopPropagation()}>
-                                  <MessageSquare className="w-3.5 h-3.5" />
-                                </span>
+                                <span title={hunt.notes} onClick={e => e.stopPropagation()}
+                                  className="w-5 h-5 rounded border border-slate-500/40 text-slate-400/70 hover:border-slate-300 hover:text-slate-300 bg-white/5 text-[10px] font-bold flex items-center justify-center cursor-default">3</span>
                               )}
-                              <span className="font-mono text-slate-200 font-medium">{formatTime(hunt.timeSeconds)}</span>
+                              <span className="font-mono text-slate-200 font-medium ml-1">{formatTime(hunt.timeSeconds)}</span>
                               {isOwnProfile && <Pencil className="w-3 h-3 text-muted-foreground/30" />}
                             </div>
                           </div>

@@ -131,6 +131,7 @@ export default function Dashboard() {
   const [videoUrl, setVideoUrl] = useState("");
   const [buildUrl, setBuildUrl] = useState("");
   const [notes, setNotes] = useState("");
+  const [dashBuildModal, setDashBuildModal] = useState<string | null>(null);
 
   // History for Undo functionality
   const [history, setHistory] = useState<HuntRecord[][]>([]);
@@ -920,22 +921,32 @@ export default function Dashboard() {
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5">
                               {rank && settings.showMedals && <RankIcon rank={rank} className="w-4 h-4" />}
                               {hunt && stats.bestHuntPerMonster[hunt.monsterId] === hunt.id && (
                                 <Star className="w-3 h-3 text-accent fill-accent" />
                               )}
                               {hunt?.videoUrl && (
-                                <a
-                                  href={hunt.videoUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="text-primary/60 hover:text-primary transition-colors"
-                                  title="Watch proof"
-                                >
-                                  <Link className="w-3.5 h-3.5" />
-                                </a>
+                                <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
+                                  onClick={e => e.stopPropagation()}
+                                  className="w-5 h-5 rounded border border-primary/40 text-primary/70 hover:border-primary hover:text-primary bg-primary/5 text-[10px] font-bold flex items-center justify-center transition-colors"
+                                  title="Watch proof">1</a>
+                              )}
+                              {hunt?.buildUrl && (
+                                hunt.buildUrl.startsWith("data:") ? (
+                                  <button onClick={e => { e.stopPropagation(); setDashBuildModal(hunt.buildUrl!); }}
+                                    className="w-5 h-5 rounded border border-yellow-500/40 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400 bg-yellow-500/5 text-[10px] font-bold flex items-center justify-center transition-colors"
+                                    title="View build">2</button>
+                                ) : (
+                                  <a href={hunt.buildUrl} target="_blank" rel="noopener noreferrer"
+                                    onClick={e => e.stopPropagation()}
+                                    className="w-5 h-5 rounded border border-yellow-500/40 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400 bg-yellow-500/5 text-[10px] font-bold flex items-center justify-center transition-colors"
+                                    title="View build">2</a>
+                                )
+                              )}
+                              {hunt?.notes && (
+                                <span title={hunt.notes}
+                                  className="w-5 h-5 rounded border border-slate-500/40 text-slate-400/70 hover:border-slate-300 hover:text-slate-300 bg-white/5 text-[10px] font-bold flex items-center justify-center cursor-default">3</span>
                               )}
                               {hunt && (
                                 <button
@@ -1280,6 +1291,18 @@ export default function Dashboard() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+
+      {/* Build image modal */}
+      {dashBuildModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          onClick={() => setDashBuildModal(null)}>
+          <div className="relative max-w-2xl w-full" onClick={e => e.stopPropagation()}>
+            <img src={dashBuildModal} alt="Build screenshot" className="w-full rounded-xl border border-white/10 shadow-2xl" />
+            <button onClick={() => setDashBuildModal(null)}
+              className="absolute top-3 right-3 bg-black/60 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/80 text-lg">✕</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -27,34 +27,39 @@ type HuntWithUser = {
   notes: string | null;
 };
 
-function HuntIcons({ hunt, onClick }: { hunt: HuntWithUser; onClick: (e: React.MouseEvent) => void }) {
+function NumBadge({ n, color, title, onClick }: { n: number; color: string; title?: string; onClick?: (e: React.MouseEvent) => void }) {
   return (
-    <div className="flex items-center gap-2" onClick={onClick}>
+    <button onClick={onClick}
+      title={title}
+      className={cn("w-6 h-6 rounded border text-[11px] font-bold flex items-center justify-center transition-opacity hover:opacity-100", color)}>
+      {n}
+    </button>
+  );
+}
+
+function HuntIcons({ hunt, onBuildClick }: { hunt: HuntWithUser; onBuildClick: () => void }) {
+  const hasAny = hunt.videoUrl || hunt.buildUrl || hunt.notes;
+  if (!hasAny) return null;
+  return (
+    <div className="flex items-center gap-1">
       {hunt.videoUrl && (
-        <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
-          onClick={e => e.stopPropagation()}
-          className="text-primary/60 hover:text-primary transition-colors" title="Watch proof">
-          <Link className="w-4 h-4" />
+        <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+          <NumBadge n={1} color="border-primary/40 text-primary/70 hover:border-primary hover:text-primary bg-primary/5" title="Watch proof" />
         </a>
       )}
       {hunt.buildUrl && (
         hunt.buildUrl.startsWith("data:") ? (
-          <button onClick={e => { e.stopPropagation(); onClick(e); }}
-            className="text-yellow-500/60 hover:text-yellow-400 transition-colors" title="View build">
-            <Star className="w-4 h-4" />
-          </button>
+          <NumBadge n={2} color="border-yellow-500/40 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400 bg-yellow-500/5" title="View build"
+            onClick={e => { e.stopPropagation(); onBuildClick(); }} />
         ) : (
-          <a href={hunt.buildUrl} target="_blank" rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
-            className="text-yellow-500/60 hover:text-yellow-400 transition-colors" title="View build">
-            <Star className="w-4 h-4" />
+          <a href={hunt.buildUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+            <NumBadge n={2} color="border-yellow-500/40 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400 bg-yellow-500/5" title="View build" />
           </a>
         )
       )}
       {hunt.notes && (
-        <span title={hunt.notes} className="text-slate-400/60 hover:text-slate-300 transition-colors cursor-default">
-          <Medal className="w-4 h-4" />
-        </span>
+        <NumBadge n={3} color="border-slate-500/40 text-slate-400/70 hover:border-slate-300 hover:text-slate-300 bg-white/5" title={hunt.notes}
+          onClick={e => e.stopPropagation()} />
       )}
     </div>
   );
@@ -362,7 +367,7 @@ export default function Leaderboard() {
                         <div className="text-sm text-muted-foreground">{weapon?.name ?? hunt.weaponId}</div>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        <HuntIcons hunt={hunt} onClick={(e) => { e.stopPropagation(); if (hunt.buildUrl?.startsWith("data:")) setBuildModalUrl(hunt.buildUrl); }} />
+                        <HuntIcons hunt={hunt} onBuildClick={() => hunt.buildUrl?.startsWith("data:") && setBuildModalUrl(hunt.buildUrl)} />
                         <div className="text-right">
                           <div className="text-2xl font-display font-bold text-primary font-mono">
                             {formatTime(hunt.timeSeconds)}
@@ -451,7 +456,7 @@ export default function Leaderboard() {
                       <div className="text-xs text-muted-foreground">{hunt.attempts} attempt{hunt.attempts !== 1 ? "s" : ""} logged</div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <HuntIcons hunt={hunt} onClick={(e) => { e.stopPropagation(); if (hunt.buildUrl?.startsWith("data:")) setBuildModalUrl(hunt.buildUrl); }} />
+                      <HuntIcons hunt={hunt} onBuildClick={() => { if (hunt.buildUrl?.startsWith("data:")) setBuildModalUrl(hunt.buildUrl); }} />
                       <div className="text-right">
                         <div className="text-2xl font-display font-bold text-primary font-mono">
                           {formatTime(hunt.timeSeconds)}
