@@ -1200,16 +1200,16 @@ export default function Dashboard() {
             <CardContent className="space-y-1">
               {MONSTERS.map((monster) => {
                 const best = stats.bestTimePerMonster[monster.id];
-                const weaponName = best ? WEAPONS.find(w => w.id === best.weaponId)?.name : null;
+                const bestWeapon = best ? WEAPONS.find(w => w.id === best.weaponId) : null;
                 const rank = best ? getRank(best.timeSeconds) : null;
                 return (
                   <div key={monster.id} className="flex items-center justify-between text-sm py-1.5 border-b border-white/5 last:border-0">
                     <div className="flex items-center gap-2">
                       <monster.icon className={cn("w-4 h-4", best ? monster.color : "text-muted-foreground/30")} />
                       {best ? (
-                        <div className="flex flex-col leading-none">
+                        <div className="flex items-center gap-1.5 leading-none">
                           <span className="font-mono text-slate-200">{formatTime(best.timeSeconds)}</span>
-                          <span className="text-[10px] text-muted-foreground mt-0.5">{weaponName}</span>
+                          {bestWeapon && <img src={bestWeapon.sprite} alt={bestWeapon.name} title={bestWeapon.name} className="w-4 h-4 object-contain" />}
                         </div>
                       ) : (
                         <span className="font-mono text-muted-foreground/40 italic text-xs">tbd</span>

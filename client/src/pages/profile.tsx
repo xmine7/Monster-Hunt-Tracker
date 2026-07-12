@@ -63,21 +63,21 @@ function ModeCard({ mode, hunts }: { mode: string; hunts: ProfileHunt[] }) {
                 {rank ? <RankIcon rank={rank} className="w-3.5 h-3.5 shrink-0" /> : <span className="w-3.5 h-3.5 shrink-0" />}
                 <monster.icon className={cn("w-3.5 h-3.5 shrink-0", monster.color)} />
                 {best ? (
-                  <span className="font-mono text-slate-200 font-medium">{formatTime(best.timeSeconds)}</span>
+                  <>
+                    <span className="font-mono text-slate-200 font-medium">{formatTime(best.timeSeconds)}</span>
+                    {weapon && <img src={weapon.sprite} alt={weapon.name} title={weapon.name} className="w-3.5 h-3.5 object-contain shrink-0" />}
+                  </>
                 ) : (
                   <span className="text-muted-foreground/30">—</span>
                 )}
               </div>
-              {best && (
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {weapon && <img src={weapon.sprite} alt={weapon.name} className="w-4 h-4 object-contain " title={weapon.name} />}
-                  {best.videoUrl && (
-                    <a href={best.videoUrl} target="_blank" rel="noopener noreferrer"
-                      className="text-primary/50 hover:text-primary transition-colors"
-                      onClick={e => e.stopPropagation()}>
-                      <Link className="w-3 h-3" />
-                    </a>
-                  )}
+              {best?.videoUrl && (
+                <div className="flex items-center gap-1 shrink-0">
+                  <a href={best.videoUrl} target="_blank" rel="noopener noreferrer"
+                    className="text-primary/50 hover:text-primary transition-colors"
+                    onClick={e => e.stopPropagation()}>
+                    <Link className="w-3 h-3" />
+                  </a>
                 </div>
               )}
             </div>
