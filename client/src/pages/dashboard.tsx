@@ -520,156 +520,142 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Settings Dialog */}
-          <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-            <DialogContent className="bg-card border-white/10 text-slate-200 max-w-sm">
-              <DialogHeader>
-                <DialogTitle className="font-display text-xl flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-primary" /> Settings
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-5 py-2">
-
-                {/* Display toggles */}
-                <div className="space-y-3">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Display</p>
-                  <label className="flex items-center justify-between cursor-pointer">
-                    <span className="text-sm">Show hunt dates</span>
-                    <button
-                      onClick={() => setSetting("showDates", !settings.showDates)}
-                      className={cn(
-                        "relative w-10 h-5 rounded-full transition-colors",
-                        settings.showDates ? "bg-primary" : "bg-white/20"
-                      )}
-                    >
-                      <span className={cn(
-                        "absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all",
-                        settings.showDates ? "left-5.5 translate-x-0.5" : "left-0.5"
-                      )} />
-                    </button>
-                  </label>
-                  <label className="flex items-center justify-between cursor-pointer">
-                    <span className="text-sm">Show medals</span>
-                    <button
-                      onClick={() => setSetting("showMedals", !settings.showMedals)}
-                      className={cn(
-                        "relative w-10 h-5 rounded-full transition-colors",
-                        settings.showMedals ? "bg-primary" : "bg-white/20"
-                      )}
-                    >
-                      <span className={cn(
-                        "absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all",
-                        settings.showMedals ? "left-5.5 translate-x-0.5" : "left-0.5"
-                      )} />
-                    </button>
-                  </label>
-                </div>
-
-                {/* Avatar picker */}
-                <div className="space-y-3 border-t border-white/10 pt-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Avatar</p>
-                  <div className="grid grid-cols-6 gap-2">
-                    {AVATARS.map(av => (
-                      <button
-                        key={av.id}
-                        title={av.label}
-                        onClick={() => updateProfileMutation.mutate({ avatar: av.id })}
-                        className={cn(
-                          "w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 transition-all",
-                          av.bg, av.border,
-                          user?.avatar === av.id || (!user?.avatar && av.id === "default")
-                            ? "ring-2 ring-primary ring-offset-1 ring-offset-background scale-110"
-                            : "opacity-60 hover:opacity-100"
-                        )}
-                      >
-                        {av.emoji}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Socials */}
-                <div className="space-y-3 border-t border-white/10 pt-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Socials</p>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">YouTube channel URL</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder={user?.youtubeUrl ?? "https://youtube.com/@..."}
-                        value={socialYoutube}
-                        onChange={(e) => { setSocialYoutube(e.target.value); setSocialMsg(null); }}
-                        className="bg-background/50 border-white/10 text-sm h-8"
-                      />
-                      <Button size="sm" className="h-8 bg-primary text-background font-bold shrink-0"
-                        onClick={() => updateProfileMutation.mutate({ youtubeUrl: socialYoutube.trim() || undefined })}
-                        disabled={!socialYoutube.trim() || updateProfileMutation.isPending}>Save</Button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Discord tag</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder={user?.discordTag ?? "username#0000 or @username"}
-                        value={socialDiscord}
-                        onChange={(e) => { setSocialDiscord(e.target.value); setSocialMsg(null); }}
-                        className="bg-background/50 border-white/10 text-sm h-8"
-                      />
-                      <Button size="sm" className="h-8 bg-primary text-background font-bold shrink-0"
-                        onClick={() => updateProfileMutation.mutate({ discordTag: socialDiscord.trim() || undefined })}
-                        disabled={!socialDiscord.trim() || updateProfileMutation.isPending}>Save</Button>
-                    </div>
-                  </div>
-                  {socialMsg && (
-                    <p className={cn("text-xs", socialMsg.ok ? "text-green-400" : "text-destructive")}>{socialMsg.text}</p>
-                  )}
-                </div>
-
-                {/* Change name */}
-                <div className="space-y-2 border-t border-white/10 pt-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Account</p>
-                  <Label className="text-sm">Change display name</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder={user?.username ?? "New name..."}
-                      value={newUsername}
-                      onChange={(e) => { setNewUsername(e.target.value); setUsernameMsg(null); }}
-                      className="bg-background/50 border-white/10 text-sm h-8"
-                    />
-                    <Button
-                      size="sm"
-                      className="h-8 bg-primary text-background font-bold shrink-0"
-                      onClick={() => changeUsernameMutation.mutate(newUsername)}
-                      disabled={!newUsername.trim() || changeUsernameMutation.isPending}
-                    >
-                      Save
-                    </Button>
-                  </div>
-                  {usernameMsg && (
-                    <p className={cn("text-xs", usernameMsg.ok ? "text-green-400" : "text-destructive")}>
-                      {usernameMsg.text}
-                    </p>
-                  )}
-                </div>
-
-                {/* Feedback */}
-                <div className="space-y-2 border-t border-white/10 pt-4">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Feedback</p>
-                  <p className="text-xs text-muted-foreground">Found a bug or have a suggestion? Let us know!</p>
-                  <a
-                    href="https://discord.gg/Z9TByDdy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-center text-xs bg-white/5 hover:bg-white/10 border border-white/10 rounded-md py-2 transition-colors"
-                  >
-                    💬 Send feedback
-                  </a>
-                </div>
-
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
       </header>
+
+      {/* Settings Dialog — lives outside header so it doesn't become a 3rd grid cell */}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent className="bg-card border-white/10 text-slate-200 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl flex items-center gap-2">
+              <Settings className="w-5 h-5 text-primary" /> Settings
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 py-2">
+
+            {/* Display toggles */}
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Display</p>
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-sm">Show hunt dates</span>
+                <button
+                  onClick={() => setSetting("showDates", !settings.showDates)}
+                  className={cn("relative w-10 h-5 rounded-full transition-colors", settings.showDates ? "bg-primary" : "bg-white/20")}
+                >
+                  <span className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all", settings.showDates ? "left-5.5 translate-x-0.5" : "left-0.5")} />
+                </button>
+              </label>
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-sm">Show medals</span>
+                <button
+                  onClick={() => setSetting("showMedals", !settings.showMedals)}
+                  className={cn("relative w-10 h-5 rounded-full transition-colors", settings.showMedals ? "bg-primary" : "bg-white/20")}
+                >
+                  <span className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all", settings.showMedals ? "left-5.5 translate-x-0.5" : "left-0.5")} />
+                </button>
+              </label>
+            </div>
+
+            {/* Avatar picker */}
+            <div className="space-y-3 border-t border-white/10 pt-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Avatar</p>
+              <div className="grid grid-cols-6 gap-2">
+                {AVATARS.map(av => (
+                  <button
+                    key={av.id}
+                    title={av.label}
+                    onClick={() => updateProfileMutation.mutate({ avatar: av.id })}
+                    className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 transition-all",
+                      av.bg, av.border,
+                      user?.avatar === av.id || (!user?.avatar && av.id === "default")
+                        ? "ring-2 ring-primary ring-offset-1 ring-offset-background scale-110"
+                        : "opacity-60 hover:opacity-100"
+                    )}
+                  >
+                    {av.emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Socials */}
+            <div className="space-y-3 border-t border-white/10 pt-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Socials</p>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">YouTube channel URL</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder={user?.youtubeUrl ?? "https://youtube.com/@..."}
+                    value={socialYoutube}
+                    onChange={(e) => { setSocialYoutube(e.target.value); setSocialMsg(null); }}
+                    className="bg-background/50 border-white/10 text-sm h-8"
+                  />
+                  <Button size="sm" className="h-8 bg-primary text-background font-bold shrink-0"
+                    onClick={() => updateProfileMutation.mutate({ youtubeUrl: socialYoutube.trim() || undefined })}
+                    disabled={!socialYoutube.trim() || updateProfileMutation.isPending}>Save</Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Discord tag</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder={user?.discordTag ?? "username#0000 or @username"}
+                    value={socialDiscord}
+                    onChange={(e) => { setSocialDiscord(e.target.value); setSocialMsg(null); }}
+                    className="bg-background/50 border-white/10 text-sm h-8"
+                  />
+                  <Button size="sm" className="h-8 bg-primary text-background font-bold shrink-0"
+                    onClick={() => updateProfileMutation.mutate({ discordTag: socialDiscord.trim() || undefined })}
+                    disabled={!socialDiscord.trim() || updateProfileMutation.isPending}>Save</Button>
+                </div>
+              </div>
+              {socialMsg && (
+                <p className={cn("text-xs", socialMsg.ok ? "text-green-400" : "text-destructive")}>{socialMsg.text}</p>
+              )}
+            </div>
+
+            {/* Change name */}
+            <div className="space-y-2 border-t border-white/10 pt-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Account</p>
+              <Label className="text-sm">Change display name</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder={user?.username ?? "New name..."}
+                  value={newUsername}
+                  onChange={(e) => { setNewUsername(e.target.value); setUsernameMsg(null); }}
+                  className="bg-background/50 border-white/10 text-sm h-8"
+                />
+                <Button
+                  size="sm"
+                  className="h-8 bg-primary text-background font-bold shrink-0"
+                  onClick={() => changeUsernameMutation.mutate(newUsername)}
+                  disabled={!newUsername.trim() || changeUsernameMutation.isPending}
+                >
+                  Save
+                </Button>
+              </div>
+              {usernameMsg && (
+                <p className={cn("text-xs", usernameMsg.ok ? "text-green-400" : "text-destructive")}>{usernameMsg.text}</p>
+              )}
+            </div>
+
+            {/* Feedback */}
+            <div className="space-y-2 border-t border-white/10 pt-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Feedback</p>
+              <p className="text-xs text-muted-foreground">Found a bug or have a suggestion? Let us know!</p>
+              <a
+                href="https://discord.gg/Z9TByDdy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-center text-xs bg-white/5 hover:bg-white/10 border border-white/10 rounded-md py-2 transition-colors"
+              >
+                💬 Send feedback
+              </a>
+            </div>
+
+          </div>
+        </DialogContent>
+      </Dialog>
 
 
       {/* Stats Highlights */}
