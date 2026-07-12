@@ -562,7 +562,7 @@ export default function Dashboard() {
 
       {/* Settings Dialog — lives outside header so it doesn't become a 3rd grid cell */}
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-        <DialogContent className="bg-card border-white/10 text-slate-200 max-w-sm">
+        <DialogContent className="bg-card border-white/10 text-slate-200 max-w-sm max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display text-xl flex items-center gap-2">
               <Settings className="w-5 h-5 text-primary" /> Settings
