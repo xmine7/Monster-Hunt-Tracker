@@ -100,6 +100,14 @@ app.use((req, res, next) => {
     ALTER TABLE hunts ADD COLUMN IF NOT EXISTS video_url TEXT
   `).catch(() => {});
 
+  // Add build_url and notes columns
+  await pool.query(`
+    ALTER TABLE hunts ADD COLUMN IF NOT EXISTS build_url TEXT
+  `).catch(() => {});
+  await pool.query(`
+    ALTER TABLE hunts ADD COLUMN IF NOT EXISTS notes TEXT
+  `).catch(() => {});
+
   // Make password nullable (migrating to username-only login)
   await pool.query(`
     ALTER TABLE users ALTER COLUMN password DROP NOT NULL

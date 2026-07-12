@@ -83,6 +83,8 @@ export default function Dashboard() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [huntToDelete, setHuntToDelete] = useState<HuntRecord | null>(null);
   const [videoUrl, setVideoUrl] = useState("");
+  const [buildUrl, setBuildUrl] = useState("");
+  const [notes, setNotes] = useState("");
 
   // History for Undo functionality
   const [history, setHistory] = useState<HuntRecord[][]>([]);
@@ -355,11 +357,15 @@ export default function Dashboard() {
       attempts: existingHunt ? (existingHunt.attempts || 1) + 1 : 1,
       mode: mode,
       videoUrl: videoUrl.trim() || null,
+      buildUrl: buildUrl.trim() || null,
+      notes: notes.trim() || null,
     });
 
     setIsAddOpen(false);
     setTimeInput("");
     setVideoUrl("");
+    setBuildUrl("");
+    setNotes("");
   };
 
   const handleUndo = () => {
@@ -540,7 +546,7 @@ export default function Dashboard() {
                 </SelectContent>
               </Select>
 
-              <Dialog open={isAddOpen} onOpenChange={(open) => { setIsAddOpen(open); if (!open) { setTimeWarning(""); setTimeInput(""); setVideoUrl(""); } }}>
+              <Dialog open={isAddOpen} onOpenChange={(open) => { setIsAddOpen(open); if (!open) { setTimeWarning(""); setTimeInput(""); setVideoUrl(""); setBuildUrl(""); setNotes(""); } }}>
                 <DialogTrigger asChild>
                   <Button className="bg-primary text-background hover:bg-primary/90 font-display font-bold tracking-wider h-9">
                     <Plus className="w-4 h-4 mr-2" /> Log Hunt
@@ -597,6 +603,25 @@ export default function Dashboard() {
                       value={videoUrl}
                       onChange={(e) => setVideoUrl(e.target.value)}
                       className="bg-background/50 border-white/10 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Build Image <span className="text-muted-foreground text-xs font-normal">(optional — screenshot or Honey Hunter link)</span></Label>
+                    <Input
+                      placeholder="https://..."
+                      value={buildUrl}
+                      onChange={(e) => setBuildUrl(e.target.value)}
+                      className="bg-background/50 border-white/10 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Notes <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                    <textarea
+                      placeholder="e.g. used temporal mantle, ES3..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      rows={2}
+                      className="w-full rounded-md border border-white/10 bg-background/50 px-3 py-2 text-sm text-slate-200 placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   {timeWarning && (

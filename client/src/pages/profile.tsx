@@ -19,6 +19,8 @@ type ProfileHunt = {
   isPb: boolean;
   mode: string;
   videoUrl?: string | null;
+  buildUrl?: string | null;
+  notes?: string | null;
 };
 
 type ModeFilter = "overall" | "solo" | "duo" | "squad";
@@ -251,31 +253,34 @@ export default function ProfilePage() {
                       const weapon = WEAPONS.find(w => w.id === hunt.weaponId);
                       const rank = getRank(hunt.timeSeconds);
                       return (
-                        <div
-                          key={hunt.id}
-                          className="flex items-center gap-3 px-4 py-3 text-sm border-b border-white/5 last:border-0"
-                        >
-                          <RankIcon rank={rank} className="w-4 h-4 shrink-0" />
-                          {monster && <monster.icon className={cn("w-4 h-4 shrink-0", monster.color)} />}
-                          <div className="flex-1 min-w-0">
-                            <span className="text-slate-300 text-xs">{monster?.name}</span>
-                            <span className="text-muted-foreground/50 text-xs"> · {weapon?.name}</span>
-                            <span className="text-muted-foreground/40 text-xs ml-1 capitalize">({hunt.mode})</span>
+                        <div key={hunt.id} className="px-4 py-3 border-b border-white/5 last:border-0">
+                          <div className="flex items-center gap-3 text-sm">
+                            <RankIcon rank={rank} className="w-4 h-4 shrink-0" />
+                            {monster && <monster.icon className={cn("w-4 h-4 shrink-0", monster.color)} />}
+                            <div className="flex-1 min-w-0">
+                              <span className="text-slate-300 text-xs">{monster?.name}</span>
+                              <span className="text-muted-foreground/50 text-xs"> · {weapon?.name}</span>
+                              <span className="text-muted-foreground/40 text-xs ml-1 capitalize">({hunt.mode})</span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="font-mono text-slate-200 font-medium">{formatTime(hunt.timeSeconds)}</span>
+                              {hunt.videoUrl && (
+                                <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
+                                  className="text-primary/60 hover:text-primary transition-colors" title="Watch proof">
+                                  <Link className="w-3.5 h-3.5" />
+                                </a>
+                              )}
+                              {hunt.buildUrl && (
+                                <a href={hunt.buildUrl} target="_blank" rel="noopener noreferrer"
+                                  className="text-yellow-500/60 hover:text-yellow-400 transition-colors" title="View build">
+                                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                                </a>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="font-mono text-slate-200 font-medium">{formatTime(hunt.timeSeconds)}</span>
-                            {hunt.videoUrl && (
-                              <a
-                                href={hunt.videoUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary/60 hover:text-primary transition-colors"
-                                title="Watch proof"
-                              >
-                                <Link className="w-3.5 h-3.5" />
-                              </a>
-                            )}
-                          </div>
+                          {hunt.notes && (
+                            <p className="mt-1.5 ml-11 text-xs text-muted-foreground/70 italic">{hunt.notes}</p>
+                          )}
                         </div>
                       );
                     })
