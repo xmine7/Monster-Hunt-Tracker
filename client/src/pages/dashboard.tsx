@@ -469,7 +469,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-2">
           {/* Left: score + leaderboard */}
           <div className="flex flex-col justify-between gap-4 p-5">
-            <div>
+            <div className="flex flex-col items-center text-center">
               <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Points</div>
               <div className="text-3xl font-display font-bold text-primary flex items-center gap-2">
                 <span className="flex items-baseline gap-1">
