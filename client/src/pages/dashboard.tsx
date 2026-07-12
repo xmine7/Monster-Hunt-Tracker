@@ -453,73 +453,78 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen p-4 md:p-8 space-y-8 font-sans text-slate-200">
       {/* Header */}
-      <header className="grid grid-cols-2 bg-card/50 backdrop-blur-md p-6 rounded-xl border border-white/5">
-        <div className="flex flex-col justify-between gap-3 pr-6">
-          <div>
-            <h1 className="text-4xl font-display font-bold text-white tracking-wide uppercase">
-              Hunter's <span className="text-primary">Log</span>
-            </h1>
-            <p className="text-muted-foreground flex items-center gap-2 mt-1">
-              <Trophy className="w-4 h-4" /> 
-              World Speedrun Tracker
-            </p>
+      <header className="bg-card/50 backdrop-blur-md rounded-xl border border-white/5 overflow-hidden">
+        {/* Title row — full width */}
+        <div className="px-6 pt-6 pb-4 border-b border-white/10">
+          <h1 className="text-4xl font-display font-bold text-white tracking-wide uppercase leading-tight">
+            Hunter's <span className="text-primary">Log</span>
+          </h1>
+          <p className="text-muted-foreground flex items-center gap-2 mt-1 text-sm">
+            <Trophy className="w-3.5 h-3.5" />
+            World Speedrun Tracker
+          </p>
+        </div>
+
+        {/* Bottom 2-col row */}
+        <div className="grid grid-cols-2">
+          {/* Left: score + leaderboard */}
+          <div className="flex flex-col justify-between gap-4 p-5">
+            <div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Points</div>
+              <div className="text-3xl font-display font-bold text-primary flex items-center gap-2">
+                <span className="flex items-baseline gap-1">
+                  {stats.totalPoints}
+                  <span className="text-base text-muted-foreground font-normal">/ {stats.maxPossiblePoints}</span>
+                </span>
+                <Diamond className="w-5 h-5 fill-primary/20" />
+              </div>
+            </div>
             <Button
               data-testid="button-leaderboard"
               variant="outline"
-              size="sm"
               onClick={() => setLocation("/leaderboard")}
-              className="mt-2 bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white h-7 text-xs gap-1.5"
+              className="w-full bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white text-xs gap-1.5"
             >
-              <Trophy className="w-3 h-3" /> View Leaderboard
+              <Trophy className="w-3.5 h-3.5" /> View Leaderboard
             </Button>
           </div>
-          <div>
-            <div className="text-xs text-muted-foreground uppercase tracking-wider">Total Score</div>
-            <div className="text-3xl font-display font-bold text-primary flex items-center gap-2">
-              <span className="flex items-baseline gap-1">
-                {stats.totalPoints} <span className="text-lg text-muted-foreground font-normal">/ {stats.maxPossiblePoints}</span>
-              </span>
-              <Diamond className="w-6 h-6 fill-primary/20" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex flex-col items-center justify-center gap-1.5 border-l border-white/20 pl-6">
-            {/* Avatar circle */}
-            <div className={cn("w-14 h-14 rounded-full flex items-center justify-center text-2xl shrink-0 border-2", getAvatar(user?.avatar).bg, getAvatar(user?.avatar).border)}>
-              {getAvatar(user?.avatar).emoji}
-            </div>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <User className="w-3 h-3" />
-              <span className="font-bold text-slate-300">{user?.username}</span>
-            </div>
-            {user?.hunterId && (
-              <div className="text-xs text-muted-foreground/70">
-                Hunter ID: <span className="font-mono text-primary/80">{user.hunterId}</span>
+
+          {/* Right: avatar + username + buttons */}
+          <div className="flex flex-col items-center justify-between gap-3 p-5 border-l border-white/10">
+            <div className="flex flex-col items-center gap-1.5">
+              <div className={cn("w-14 h-14 rounded-full flex items-center justify-center text-2xl border-2", getAvatar(user?.avatar).bg, getAvatar(user?.avatar).border)}>
+                {getAvatar(user?.avatar).emoji}
               </div>
-            )}
-            <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="flex items-center gap-1 text-sm">
+                <User className="w-3 h-3 text-muted-foreground" />
+                <span className="font-bold text-slate-200">{user?.username}</span>
+              </div>
+              {user?.hunterId && (
+                <div className="text-xs text-muted-foreground/70">
+                  Hunter ID: <span className="font-mono text-primary/80">{user.hunterId}</span>
+                </div>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2 w-full">
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => { setIsSettingsOpen(true); setNewUsername(""); setUsernameMsg(null); }}
-                className="bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white h-7 text-xs gap-1.5"
+                className="bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white text-xs gap-1.5"
                 title="Settings"
               >
-                <Settings className="w-3 h-3" />
+                <Settings className="w-3.5 h-3.5" />
               </Button>
               <Button
                 data-testid="button-logout"
                 variant="outline"
-                size="sm"
                 onClick={logout}
-                className="bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white h-7 text-xs gap-1.5"
+                className="bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white text-xs gap-1.5"
               >
                 <LogOut className="w-3 h-3" /> Logout
               </Button>
             </div>
           </div>
-
+        </div>
       </header>
 
       {/* Settings Dialog — lives outside header so it doesn't become a 3rd grid cell */}
