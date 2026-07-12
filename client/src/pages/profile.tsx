@@ -50,7 +50,7 @@ function ModeCard({ mode, hunts }: { mode: string; hunts: ProfileHunt[] }) {
   return (
     <Card className="bg-card/40 border-white/5 w-full">
       <CardHeader className="pb-2 pt-4 px-4">
-        <CardTitle className="text-xs font-display uppercase tracking-widest text-primary">{mode}</CardTitle>
+        <CardTitle className="text-xs font-display uppercase tracking-widest text-primary text-center">{mode}</CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4 space-y-2">
         {MONSTERS.map(monster => {
@@ -215,7 +215,7 @@ export default function ProfilePage() {
               <Card className="bg-gradient-to-br from-card/60 to-primary/10 border-primary/20">
                 <CardContent className="flex items-center gap-4 p-6">
                   <div className={cn("w-16 h-16 rounded-full flex items-center justify-center text-3xl shrink-0 border-2", av.bg, av.border)}>
-                    {av.emoji}
+                    {av.sprite ? <img src={av.sprite} alt={av.label} className="w-10 h-10 object-contain" /> : av.emoji}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h1 className="text-3xl font-display font-bold text-white">{profile.username}</h1>

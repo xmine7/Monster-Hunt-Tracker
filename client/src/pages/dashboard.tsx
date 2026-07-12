@@ -523,9 +523,11 @@ export default function Dashboard() {
           {/* Right: avatar + username + buttons */}
           <div className="flex flex-col items-center justify-between gap-3 p-5 border-l border-white/10">
             <div className="flex flex-col items-center gap-1.5">
-              <div className={cn("w-14 h-14 rounded-full flex items-center justify-center text-2xl border-2", getAvatar(user?.avatar).bg, getAvatar(user?.avatar).border)}>
-                {getAvatar(user?.avatar).emoji}
-              </div>
+              {(() => { const av = getAvatar(user?.avatar); return (
+                <div className={cn("w-14 h-14 rounded-full flex items-center justify-center text-2xl border-2", av.bg, av.border)}>
+                  {av.sprite ? <img src={av.sprite} alt={av.label} className="w-8 h-8 object-contain" /> : av.emoji}
+                </div>
+              ); })()}
               <div className="flex items-center gap-1 text-sm">
                 <User className="w-3 h-3 text-muted-foreground" />
                 <span className="font-bold text-slate-200">{user?.username}</span>
@@ -608,7 +610,7 @@ export default function Dashboard() {
                         : "opacity-60 hover:opacity-100"
                     )}
                   >
-                    {av.emoji}
+                    {av.sprite ? <img src={av.sprite} alt={av.label} className="w-6 h-6 object-contain" /> : av.emoji}
                   </button>
                 ))}
               </div>
@@ -1021,7 +1023,7 @@ export default function Dashboard() {
           {/* Random Challenge Card */}
           <Card className="bg-gradient-to-br from-card/60 to-purple-500/10 border-purple-500/20">
             <CardHeader className="pb-2">
-              <CardTitle className="font-display text-lg text-white flex items-center gap-2">
+              <CardTitle className="font-display text-lg text-white flex items-center justify-center gap-2">
                 <Dices className="w-5 h-5 text-purple-400" /> Random Challenge
               </CardTitle>
             </CardHeader>
@@ -1193,7 +1195,7 @@ export default function Dashboard() {
 
           <Card className="bg-card/40 border-white/5 backdrop-blur-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="font-display text-lg text-white flex items-center gap-2">
+              <CardTitle className="font-display text-lg text-white flex items-center justify-center gap-2">
                 <Trophy className="w-5 h-5 text-accent" /> Best Times
               </CardTitle>
             </CardHeader>
@@ -1222,7 +1224,7 @@ export default function Dashboard() {
 
           <Card className="bg-card/40 border-white/5 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="font-display text-lg text-white">Scoring Rules</CardTitle>
+              <CardTitle className="font-display text-lg text-white text-center">Scoring Rules</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <div className="flex justify-between items-center p-2 rounded bg-white/5">
