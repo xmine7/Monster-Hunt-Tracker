@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { MONSTERS, WEAPONS, getRank, getPoints, formatTime } from "@/lib/mh-data";
-import { Trophy, ArrowLeft, Medal, Star, Skull, Crown, Swords, Clock, Search, UserRound, Users, Link } from "lucide-react";
+import { Trophy, ArrowLeft, Medal, Star, Skull, Crown, Swords, Clock, Search, UserRound, Users, Link, MessageSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,39 +27,35 @@ type HuntWithUser = {
   notes: string | null;
 };
 
-function NumBadge({ n, color, title, onClick }: { n: number; color: string; title?: string; onClick?: (e: React.MouseEvent) => void }) {
-  return (
-    <button onClick={onClick}
-      title={title}
-      className={cn("w-6 h-6 rounded border text-[11px] font-bold flex items-center justify-center transition-opacity hover:opacity-100", color)}>
-      {n}
-    </button>
-  );
-}
-
-function HuntIcons({ hunt, onBuildClick }: { hunt: HuntWithUser; onBuildClick: () => void }) {
+function HuntIcons({ hunt, onBuildClick, onNotesClick }: { hunt: HuntWithUser; onBuildClick: () => void; onNotesClick: () => void }) {
   const hasAny = hunt.videoUrl || hunt.buildUrl || hunt.notes;
   if (!hasAny) return null;
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       {hunt.videoUrl && (
-        <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
-          <NumBadge n={1} color="border-primary/40 text-primary/70 hover:border-primary hover:text-primary bg-primary/5" title="Watch proof" />
+        <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+          title="Watch proof" className="text-primary/50 hover:text-primary transition-colors">
+          <Link className="w-3.5 h-3.5" />
         </a>
       )}
       {hunt.buildUrl && (
         hunt.buildUrl.startsWith("data:") ? (
-          <NumBadge n={2} color="border-yellow-500/40 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400 bg-yellow-500/5" title="View build"
-            onClick={e => { e.stopPropagation(); onBuildClick(); }} />
+          <button onClick={e => { e.stopPropagation(); onBuildClick(); }}
+            title="View build" className="text-yellow-500/50 hover:text-yellow-400 transition-colors">
+            <Star className="w-3.5 h-3.5" />
+          </button>
         ) : (
-          <a href={hunt.buildUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
-            <NumBadge n={2} color="border-yellow-500/40 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400 bg-yellow-500/5" title="View build" />
+          <a href={hunt.buildUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+            title="View build" className="text-yellow-500/50 hover:text-yellow-400 transition-colors">
+            <Star className="w-3.5 h-3.5" />
           </a>
         )
       )}
       {hunt.notes && (
-        <NumBadge n={3} color="border-slate-500/40 text-slate-400/70 hover:border-slate-300 hover:text-slate-300 bg-white/5" title={hunt.notes}
-          onClick={e => e.stopPropagation()} />
+        <button onClick={e => { e.stopPropagation(); onNotesClick(); }}
+          title="Read notes" className="text-slate-400/50 hover:text-slate-300 transition-colors">
+          <MessageSquare className="w-3.5 h-3.5" />
+        </button>
       )}
     </div>
   );
@@ -81,6 +77,7 @@ export default function Leaderboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [leaderboardMode, setLeaderboardMode] = useState<LeaderboardMode>("all");
   const [buildModalUrl, setBuildModalUrl] = useState<string | null>(null);
+  const [notesPopup, setNotesPopup] = useState<string | null>(null);
 
   const { data: allHunts = [], isLoading } = useQuery<HuntWithUser[]>({
     queryKey: ["/api/leaderboard"],
@@ -367,7 +364,9 @@ export default function Leaderboard() {
                         <div className="text-sm text-muted-foreground">{weapon?.name ?? hunt.weaponId}</div>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        <HuntIcons hunt={hunt} onBuildClick={() => hunt.buildUrl?.startsWith("data:") && setBuildModalUrl(hunt.buildUrl)} />
+                        <HuntIcons hunt={hunt}
+                          onBuildClick={() => { if (hunt.buildUrl?.startsWith("data:")) setBuildModalUrl(hunt.buildUrl); }}
+                          onNotesClick={() => setNotesPopup(hunt.notes!)} />
                         <div className="text-right">
                           <div className="text-2xl font-display font-bold text-primary font-mono">
                             {formatTime(hunt.timeSeconds)}
@@ -456,7 +455,9 @@ export default function Leaderboard() {
                       <div className="text-xs text-muted-foreground">{hunt.attempts} attempt{hunt.attempts !== 1 ? "s" : ""} logged</div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
-                      <HuntIcons hunt={hunt} onBuildClick={() => { if (hunt.buildUrl?.startsWith("data:")) setBuildModalUrl(hunt.buildUrl); }} />
+                      <HuntIcons hunt={hunt}
+                        onBuildClick={() => { if (hunt.buildUrl?.startsWith("data:")) setBuildModalUrl(hunt.buildUrl); }}
+                        onNotesClick={() => setNotesPopup(hunt.notes!)} />
                       <div className="text-right">
                         <div className="text-2xl font-display font-bold text-primary font-mono">
                           {formatTime(hunt.timeSeconds)}
@@ -479,6 +480,19 @@ export default function Leaderboard() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Notes popup */}
+      {notesPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6"
+          onClick={() => setNotesPopup(null)}>
+          <div className="relative bg-card border border-white/10 rounded-xl p-5 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-2">Hunter's Notes</p>
+            <p className="text-slate-200 text-sm leading-relaxed">{notesPopup}</p>
+            <button onClick={() => setNotesPopup(null)}
+              className="absolute top-3 right-3 text-muted-foreground hover:text-white transition-colors text-lg">✕</button>
+          </div>
+        </div>
+      )}
 
       {/* Build image modal */}
       {buildModalUrl && (

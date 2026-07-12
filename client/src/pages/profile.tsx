@@ -105,6 +105,7 @@ export default function ProfilePage() {
   const [editBuild, setEditBuild] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [buildModalUrl, setBuildModalUrl] = useState<string | null>(null);
+  const [notesPopup, setNotesPopup] = useState<string | null>(null);
   const buildFileRef = useRef<HTMLInputElement>(null);
 
   const editMutation = useMutation({
@@ -339,8 +340,7 @@ export default function ProfilePage() {
                       const rank = getRank(hunt.timeSeconds);
                       return (
                         <div key={hunt.id}
-                          className={cn("px-4 py-3 border-b border-white/5 last:border-0", isOwnProfile && "cursor-pointer hover:bg-white/5 transition-colors")}
-                          onClick={() => isOwnProfile && openEdit(hunt)}>
+                          className="px-4 py-3 border-b border-white/5 last:border-0">
                           <div className="flex items-center gap-3 text-sm">
                             <RankIcon rank={rank} className="w-4 h-4 shrink-0" />
                             {monster && <monster.icon className={cn("w-4 h-4 shrink-0", monster.color)} />}
@@ -349,31 +349,33 @@ export default function ProfilePage() {
                               <span className="text-muted-foreground/50 text-xs"> · {weapon?.name}</span>
                               <span className="text-muted-foreground/40 text-xs ml-1 capitalize">({hunt.mode})</span>
                             </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
+                            <div className="flex items-center gap-2 shrink-0">
                               {hunt.videoUrl && (
                                 <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
-                                  onClick={e => e.stopPropagation()}
-                                  className="w-5 h-5 rounded border border-primary/40 text-primary/70 hover:border-primary hover:text-primary bg-primary/5 text-[10px] font-bold flex items-center justify-center transition-colors"
-                                  title="Watch proof">1</a>
+                                  title="Watch proof" className="text-primary/50 hover:text-primary transition-colors">
+                                  <Link className="w-3.5 h-3.5" />
+                                </a>
                               )}
                               {hunt.buildUrl && (
                                 hunt.buildUrl.startsWith("data:") ? (
-                                  <button onClick={e => { e.stopPropagation(); setBuildModalUrl(hunt.buildUrl!); }}
-                                    className="w-5 h-5 rounded border border-yellow-500/40 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400 bg-yellow-500/5 text-[10px] font-bold flex items-center justify-center transition-colors"
-                                    title="View build">2</button>
+                                  <button onClick={() => setBuildModalUrl(hunt.buildUrl!)}
+                                    title="View build" className="text-yellow-500/50 hover:text-yellow-400 transition-colors">
+                                    <Star className="w-3.5 h-3.5" />
+                                  </button>
                                 ) : (
                                   <a href={hunt.buildUrl} target="_blank" rel="noopener noreferrer"
-                                    onClick={e => e.stopPropagation()}
-                                    className="w-5 h-5 rounded border border-yellow-500/40 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400 bg-yellow-500/5 text-[10px] font-bold flex items-center justify-center transition-colors"
-                                    title="View build">2</a>
+                                    title="View build" className="text-yellow-500/50 hover:text-yellow-400 transition-colors">
+                                    <Star className="w-3.5 h-3.5" />
+                                  </a>
                                 )
                               )}
                               {hunt.notes && (
-                                <span title={hunt.notes} onClick={e => e.stopPropagation()}
-                                  className="w-5 h-5 rounded border border-slate-500/40 text-slate-400/70 hover:border-slate-300 hover:text-slate-300 bg-white/5 text-[10px] font-bold flex items-center justify-center cursor-default">3</span>
+                                <button onClick={() => setNotesPopup(hunt.notes!)}
+                                  title="Read notes" className="text-slate-400/50 hover:text-slate-300 transition-colors">
+                                  <MessageSquare className="w-3.5 h-3.5" />
+                                </button>
                               )}
                               <span className="font-mono text-slate-200 font-medium ml-1">{formatTime(hunt.timeSeconds)}</span>
-                              {isOwnProfile && <Pencil className="w-3 h-3 text-muted-foreground/30" />}
                             </div>
                           </div>
                         </div>
@@ -443,6 +445,19 @@ export default function ProfilePage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Notes popup */}
+      {notesPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6"
+          onClick={() => setNotesPopup(null)}>
+          <div className="relative bg-card border border-white/10 rounded-xl p-5 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-2">Hunter's Notes</p>
+            <p className="text-slate-200 text-sm leading-relaxed">{notesPopup}</p>
+            <button onClick={() => setNotesPopup(null)}
+              className="absolute top-3 right-3 text-muted-foreground hover:text-white transition-colors text-lg">✕</button>
+          </div>
+        </div>
+      )}
 
       {/* Build image modal */}
       {buildModalUrl && (

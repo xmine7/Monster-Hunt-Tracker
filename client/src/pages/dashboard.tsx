@@ -9,7 +9,7 @@ import {
   Skull, Medal, Star, Diamond, 
   Plus, Trophy, Swords,
   TrendingUp, TrendingDown, RotateCcw, Trash2, Undo2, Shuffle, Dices,
-  LogOut, User, Link, Users, UserRound, Settings
+  LogOut, User, Link, Users, UserRound, Settings, Pencil, MessageSquare
 } from "lucide-react";
 import { useUser, useLogout } from "@/hooks/use-user";
 import { useSettings } from "@/hooks/use-settings";
@@ -132,6 +132,36 @@ export default function Dashboard() {
   const [buildUrl, setBuildUrl] = useState("");
   const [notes, setNotes] = useState("");
   const [dashBuildModal, setDashBuildModal] = useState<string | null>(null);
+  const [dashNotesPopup, setDashNotesPopup] = useState<string | null>(null);
+
+  // Edit hunt row state
+  const [editRowHunt, setEditRowHunt] = useState<HuntRecord | null>(null);
+  const [editRowVideo, setEditRowVideo] = useState("");
+  const [editRowBuild, setEditRowBuild] = useState("");
+  const [editRowNotes, setEditRowNotes] = useState("");
+
+  const editRowMutation = useMutation({
+    mutationFn: async (data: { videoUrl?: string | null; buildUrl?: string | null; notes?: string | null }) => {
+      const res = await fetch(`/api/hunts/${editRowHunt!.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["hunts"] });
+      setEditRowHunt(null);
+    },
+  });
+
+  const openRowEdit = (hunt: HuntRecord) => {
+    setEditRowHunt(hunt);
+    setEditRowVideo(hunt.videoUrl || "");
+    setEditRowBuild(hunt.buildUrl || "");
+    setEditRowNotes(hunt.notes || "");
+  };
 
   // History for Undo functionality
   const [history, setHistory] = useState<HuntRecord[][]>([]);
@@ -929,24 +959,39 @@ export default function Dashboard() {
                               {hunt?.videoUrl && (
                                 <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
                                   onClick={e => e.stopPropagation()}
-                                  className="w-5 h-5 rounded border border-primary/40 text-primary/70 hover:border-primary hover:text-primary bg-primary/5 text-[10px] font-bold flex items-center justify-center transition-colors"
-                                  title="Watch proof">1</a>
+                                  title="Watch proof" className="text-primary/50 hover:text-primary transition-colors">
+                                  <Link className="w-3.5 h-3.5" />
+                                </a>
                               )}
                               {hunt?.buildUrl && (
                                 hunt.buildUrl.startsWith("data:") ? (
                                   <button onClick={e => { e.stopPropagation(); setDashBuildModal(hunt.buildUrl!); }}
-                                    className="w-5 h-5 rounded border border-yellow-500/40 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400 bg-yellow-500/5 text-[10px] font-bold flex items-center justify-center transition-colors"
-                                    title="View build">2</button>
+                                    title="View build" className="text-yellow-500/50 hover:text-yellow-400 transition-colors">
+                                    <Star className="w-3.5 h-3.5" />
+                                  </button>
                                 ) : (
                                   <a href={hunt.buildUrl} target="_blank" rel="noopener noreferrer"
                                     onClick={e => e.stopPropagation()}
-                                    className="w-5 h-5 rounded border border-yellow-500/40 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-400 bg-yellow-500/5 text-[10px] font-bold flex items-center justify-center transition-colors"
-                                    title="View build">2</a>
+                                    title="View build" className="text-yellow-500/50 hover:text-yellow-400 transition-colors">
+                                    <Star className="w-3.5 h-3.5" />
+                                  </a>
                                 )
                               )}
                               {hunt?.notes && (
-                                <span title={hunt.notes}
-                                  className="w-5 h-5 rounded border border-slate-500/40 text-slate-400/70 hover:border-slate-300 hover:text-slate-300 bg-white/5 text-[10px] font-bold flex items-center justify-center cursor-default">3</span>
+                                <button onClick={e => { e.stopPropagation(); setDashNotesPopup(hunt.notes!); }}
+                                  title="Read notes" className="text-slate-400/50 hover:text-slate-300 transition-colors">
+                                  <MessageSquare className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              {hunt && (
+                                <button
+                                  data-testid={`button-edit-hunt-${hunt.id}`}
+                                  onClick={e => { e.stopPropagation(); openRowEdit(hunt); }}
+                                  className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-muted-foreground/40 hover:text-primary"
+                                  title="Edit proof / notes"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </button>
                               )}
                               {hunt && (
                                 <button
@@ -1291,6 +1336,73 @@ export default function Dashboard() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+
+      {/* Edit hunt row dialog */}
+      <Dialog open={!!editRowHunt} onOpenChange={(o) => !o && setEditRowHunt(null)}>
+        <DialogContent className="bg-card border-white/10 text-slate-200 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-white">Edit Hunt</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Proof Link</Label>
+              <Input value={editRowVideo} onChange={e => setEditRowVideo(e.target.value)}
+                className="bg-background/50 border-white/10 text-sm" placeholder="https://youtube.com/..." />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Build Image URL</Label>
+              <Input value={editRowBuild.startsWith("data:") ? "" : editRowBuild}
+                onChange={e => setEditRowBuild(e.target.value)}
+                disabled={editRowBuild.startsWith("data:")}
+                className="bg-background/50 border-white/10 text-sm" placeholder="URL or upload below..." />
+              <label className="cursor-pointer inline-block">
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = (ev) => setEditRowBuild(ev.target?.result as string);
+                  reader.readAsDataURL(file);
+                }} />
+                <div className="h-8 px-3 inline-flex items-center rounded-md border border-white/10 bg-background/50 text-xs text-muted-foreground hover:text-white transition-colors cursor-pointer">
+                  {editRowBuild.startsWith("data:") ? "✓ Uploaded" : "Upload image"}
+                </div>
+              </label>
+              {editRowBuild.startsWith("data:") && (
+                <div className="flex items-center gap-2 mt-1">
+                  <img src={editRowBuild} alt="Build" className="h-10 rounded border border-white/10 object-cover" />
+                  <button onClick={() => setEditRowBuild("")} className="text-xs text-muted-foreground hover:text-destructive">Remove</button>
+                </div>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Notes</Label>
+              <textarea value={editRowNotes} onChange={e => setEditRowNotes(e.target.value)}
+                rows={2} placeholder="e.g. used temporal mantle..."
+                className="w-full rounded-md border border-white/10 bg-background/50 px-3 py-2 text-sm text-slate-200 placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <Button onClick={() => editRowMutation.mutate({
+              videoUrl: editRowVideo.trim() || null,
+              buildUrl: editRowBuild.trim() || null,
+              notes: editRowNotes.trim() || null,
+            })} disabled={editRowMutation.isPending} className="w-full bg-primary text-background font-bold">
+              {editRowMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notes popup */}
+      {dashNotesPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6"
+          onClick={() => setDashNotesPopup(null)}>
+          <div className="relative bg-card border border-white/10 rounded-xl p-5 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-2">Hunter's Notes</p>
+            <p className="text-slate-200 text-sm leading-relaxed">{dashNotesPopup}</p>
+            <button onClick={() => setDashNotesPopup(null)}
+              className="absolute top-3 right-3 text-muted-foreground hover:text-white transition-colors text-lg">✕</button>
+          </div>
+        </div>
+      )}
 
       {/* Build image modal */}
       {dashBuildModal && (
