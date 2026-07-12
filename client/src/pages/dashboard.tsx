@@ -9,9 +9,10 @@ import {
   Skull, Medal, Star, Diamond, 
   Plus, Trophy, Swords,
   TrendingUp, TrendingDown, RotateCcw, Trash2, Undo2, Shuffle, Dices,
-  LogOut, User, Link, Users, UserRound
+  LogOut, User, Link, Users, UserRound, Settings
 } from "lucide-react";
 import { useUser, useLogout } from "@/hooks/use-user";
+import { useSettings } from "@/hooks/use-settings";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,6 +79,29 @@ export default function Dashboard() {
         date: new Date(hunt.date),
       }));
     },
+  });
+
+  const { settings, set: setSetting } = useSettings();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+  const [usernameMsg, setUsernameMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const changeUsernameMutation = useMutation({
+    mutationFn: async (username: string) => {
+      const res = await fetch("/api/me/username", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username }),
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+      setUsernameMsg({ ok: true, text: "Name updated!" });
+      setNewUsername("");
+    },
+    onError: (e: Error) => setUsernameMsg({ ok: false, text: e.message }),
   });
 
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -447,16 +471,117 @@ export default function Dashboard() {
                 Hunter ID: <span className="font-mono text-primary/80">{user.hunterId}</span>
               </div>
             )}
-            <Button
-              data-testid="button-logout"
-              variant="outline"
-              size="sm"
-              onClick={logout}
-              className="bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white h-7 text-xs gap-1.5"
-            >
-              <LogOut className="w-3 h-3" /> Logout
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setIsSettingsOpen(true); setNewUsername(""); setUsernameMsg(null); }}
+                className="bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white h-7 text-xs gap-1.5"
+                title="Settings"
+              >
+                <Settings className="w-3 h-3" />
+              </Button>
+              <Button
+                data-testid="button-logout"
+                variant="outline"
+                size="sm"
+                onClick={logout}
+                className="bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white h-7 text-xs gap-1.5"
+              >
+                <LogOut className="w-3 h-3" /> Logout
+              </Button>
+            </div>
           </div>
+
+          {/* Settings Dialog */}
+          <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+            <DialogContent className="bg-card border-white/10 text-slate-200 max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="font-display text-xl flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-primary" /> Settings
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-5 py-2">
+
+                {/* Display toggles */}
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Display</p>
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-sm">Show hunt dates</span>
+                    <button
+                      onClick={() => setSetting("showDates", !settings.showDates)}
+                      className={cn(
+                        "relative w-10 h-5 rounded-full transition-colors",
+                        settings.showDates ? "bg-primary" : "bg-white/20"
+                      )}
+                    >
+                      <span className={cn(
+                        "absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all",
+                        settings.showDates ? "left-5.5 translate-x-0.5" : "left-0.5"
+                      )} />
+                    </button>
+                  </label>
+                  <label className="flex items-center justify-between cursor-pointer">
+                    <span className="text-sm">Show medals</span>
+                    <button
+                      onClick={() => setSetting("showMedals", !settings.showMedals)}
+                      className={cn(
+                        "relative w-10 h-5 rounded-full transition-colors",
+                        settings.showMedals ? "bg-primary" : "bg-white/20"
+                      )}
+                    >
+                      <span className={cn(
+                        "absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all",
+                        settings.showMedals ? "left-5.5 translate-x-0.5" : "left-0.5"
+                      )} />
+                    </button>
+                  </label>
+                </div>
+
+                {/* Change name */}
+                <div className="space-y-2 border-t border-white/10 pt-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Account</p>
+                  <Label className="text-sm">Change display name</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder={user?.username ?? "New name..."}
+                      value={newUsername}
+                      onChange={(e) => { setNewUsername(e.target.value); setUsernameMsg(null); }}
+                      className="bg-background/50 border-white/10 text-sm h-8"
+                    />
+                    <Button
+                      size="sm"
+                      className="h-8 bg-primary text-background font-bold shrink-0"
+                      onClick={() => changeUsernameMutation.mutate(newUsername)}
+                      disabled={!newUsername.trim() || changeUsernameMutation.isPending}
+                    >
+                      Save
+                    </Button>
+                  </div>
+                  {usernameMsg && (
+                    <p className={cn("text-xs", usernameMsg.ok ? "text-green-400" : "text-destructive")}>
+                      {usernameMsg.text}
+                    </p>
+                  )}
+                </div>
+
+                {/* Feedback */}
+                <div className="space-y-2 border-t border-white/10 pt-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Feedback</p>
+                  <p className="text-xs text-muted-foreground">Found a bug or have a suggestion? Let us know!</p>
+                  <a
+                    href="https://discord.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-center text-xs bg-white/5 hover:bg-white/10 border border-white/10 rounded-md py-2 transition-colors"
+                  >
+                    💬 Send feedback
+                  </a>
+                </div>
+
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </header>
 
@@ -661,13 +786,15 @@ export default function Dashboard() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex gap-4 text-sm text-muted-foreground mb-4">
-                      <div className="flex items-center gap-1"><Medal className="w-4 h-4 text-yellow-500" /> {weapon.gold}</div>
-                      <div className="flex items-center gap-1"><Medal className="w-4 h-4 text-slate-300" /> {weapon.silver}</div>
-                      <div className="flex items-center gap-1"><Medal className="w-4 h-4 text-amber-700" /> {weapon.bronze}</div>
-                      <div className="flex items-center gap-1"><Skull className="w-4 h-4 text-gray-500" /> {weapon.skull}</div>
-                      <div className="flex items-center gap-1"><Star className="w-4 h-4 text-accent fill-accent/20" /> {weapon.star}</div>
-                    </div>
+                    {settings.showMedals && (
+                      <div className="flex gap-4 text-sm text-muted-foreground mb-4">
+                        <div className="flex items-center gap-1"><Medal className="w-4 h-4 text-yellow-500" /> {weapon.gold}</div>
+                        <div className="flex items-center gap-1"><Medal className="w-4 h-4 text-slate-300" /> {weapon.silver}</div>
+                        <div className="flex items-center gap-1"><Medal className="w-4 h-4 text-amber-700" /> {weapon.bronze}</div>
+                        <div className="flex items-center gap-1"><Skull className="w-4 h-4 text-gray-500" /> {weapon.skull}</div>
+                        <div className="flex items-center gap-1"><Star className="w-4 h-4 text-accent fill-accent/20" /> {weapon.star}</div>
+                      </div>
+                    )}
                     
                     {/* Personal Bests List for this weapon — always show all monsters */}
                     <div className="space-y-1 mt-2 border-t border-white/5 pt-2">
@@ -682,14 +809,21 @@ export default function Dashboard() {
                               <monster.icon className={cn("w-4 h-4", hunt ? monster.color : "text-muted-foreground/40")} />
                               <div className="flex flex-col leading-none">
                                 {hunt ? (
-                                  <span className="font-mono text-slate-300">{formatTime(hunt.timeSeconds)}</span>
+                                  <>
+                                    <span className="font-mono text-slate-300">{formatTime(hunt.timeSeconds)}</span>
+                                    {settings.showDates && hunt.date && (
+                                      <span className="text-[10px] text-muted-foreground/50 mt-0.5">
+                                        {new Date(hunt.date).toLocaleDateString()}
+                                      </span>
+                                    )}
+                                  </>
                                 ) : (
                                   <span className="font-mono text-muted-foreground/40 italic text-xs">tbd</span>
                                 )}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              {rank && <RankIcon rank={rank} className="w-4 h-4" />}
+                              {rank && settings.showMedals && <RankIcon rank={rank} className="w-4 h-4" />}
                               {hunt && stats.bestHuntPerMonster[hunt.monsterId] === hunt.id && (
                                 <Star className="w-3 h-3 text-accent fill-accent" />
                               )}

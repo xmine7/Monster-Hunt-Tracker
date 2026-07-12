@@ -14,6 +14,20 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Change username
+  app.patch("/api/me/username", requireAuth, async (req, res) => {
+    const { username } = req.body;
+    if (!username || username.trim().length < 2) {
+      return res.status(400).json({ error: "Username must be at least 2 characters" });
+    }
+    const existing = await storage.getUserByUsername(username.trim());
+    if (existing && existing.id !== req.session.userId) {
+      return res.status(400).json({ error: "That username is already taken" });
+    }
+    const user = await storage.updateUsername(req.session.userId!, username.trim());
+    res.json({ id: user?.id, username: user?.username, hunterId: user?.hunterId });
+  });
+
   // Who am I?
   app.get("/api/me", async (req, res) => {
     if (!req.session.userId) return res.status(401).json(null);

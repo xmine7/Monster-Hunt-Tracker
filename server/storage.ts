@@ -11,6 +11,7 @@ export interface IStorage {
   assignHunterId(userId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
 
+  updateUsername(userId: string, username: string): Promise<User | undefined>;
   deleteHunt(userId: string, huntId: string): Promise<void>;
   getAllHuntsWithUsers(): Promise<HuntWithUser[]>;
 
@@ -120,6 +121,11 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHuntsByMode(userId: string, mode: string): Promise<void> {
     await db.delete(hunts).where(and(eq(hunts.userId, userId), eq(hunts.mode, mode)));
+  }
+
+  async updateUsername(userId: string, username: string): Promise<User | undefined> {
+    const [user] = await db.update(users).set({ username }).where(eq(users.id, userId)).returning();
+    return user;
   }
 
   async deleteUser(userId: string): Promise<void> {
