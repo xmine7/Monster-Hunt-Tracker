@@ -452,7 +452,6 @@ export default function Leaderboard() {
                       <div className="font-display font-bold text-white text-lg leading-tight">
                         {hunt.username}
                       </div>
-                      <div className="text-xs text-muted-foreground">{hunt.attempts} attempt{hunt.attempts !== 1 ? "s" : ""} logged</div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <HuntIcons hunt={hunt}
