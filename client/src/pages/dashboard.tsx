@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   MONSTERS, WEAPONS, INITIAL_HUNTS, 
-  getRank, getPoints, formatTime, parseTime, getSpriteStyle,
+  getRank, getPoints, formatTime, parseTime,
   type HuntRecord, type Rank 
 } from "@/lib/mh-data";
 import { 
@@ -454,7 +454,7 @@ export default function Dashboard() {
     <div className="min-h-screen p-4 md:p-8 space-y-8 font-sans text-slate-200">
       {/* Header */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card/50 backdrop-blur-md p-6 rounded-xl border border-white/5">
-        <div className="flex-1">
+        <div>
           <h1 className="text-4xl font-display font-bold text-white tracking-wide uppercase">
             Hunter's <span className="text-primary">Log</span>
           </h1>
@@ -471,19 +471,18 @@ export default function Dashboard() {
           >
             <Trophy className="w-3 h-3" /> View Leaderboard
           </Button>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <div className="text-sm text-muted-foreground uppercase tracking-wider">Total Score</div>
-            <div className="text-3xl font-display font-bold text-primary flex items-center justify-end gap-2">
+          <div className="mt-3">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">Total Score</div>
+            <div className="text-3xl font-display font-bold text-primary flex items-center gap-2">
               <span className="flex items-baseline gap-1">
                 {stats.totalPoints} <span className="text-lg text-muted-foreground font-normal">/ {stats.maxPossiblePoints}</span>
               </span>
               <Diamond className="w-6 h-6 fill-primary/20" />
             </div>
           </div>
-          <div className="flex flex-col items-center gap-1.5 border-l border-white/10 pl-4">
+        </div>
+        
+        <div className="flex flex-col items-center gap-1.5 border-l border-white/20 pl-6">
             {/* Avatar circle */}
             <div className={cn("w-14 h-14 rounded-full flex items-center justify-center text-2xl shrink-0 border-2", getAvatar(user?.avatar).bg, getAvatar(user?.avatar).border)}>
               {getAvatar(user?.avatar).emoji}
@@ -891,7 +890,7 @@ export default function Dashboard() {
                         return (
                           <div key={monster.id} className="group flex items-center justify-between text-sm py-1">
                             <div className="flex items-center gap-2">
-                              <div style={{...getSpriteStyle(monster.sprite, 20), opacity: hunt ? 1 : 0.25}} className="rounded shrink-0 overflow-hidden" />
+                              <monster.icon className={cn("w-4 h-4", hunt ? monster.color : "text-muted-foreground/40")} />
                               <div className="flex flex-col leading-none">
                                 {hunt ? (
                                   <>
@@ -980,7 +979,7 @@ export default function Dashboard() {
                               const monster = MONSTERS.find(m => m.id === randomResult.monster)!;
                               return (
                                 <>
-                                  <div style={getSpriteStyle(monster.sprite, 48)} className="rounded-lg overflow-hidden" />
+                                  <monster.icon className={cn("w-8 h-8", monster.color)} />
                                   <span className="text-2xl font-display font-bold text-white">{monster.name}</span>
                                 </>
                               );
@@ -1135,7 +1134,7 @@ export default function Dashboard() {
                 return (
                   <div key={monster.id} className="flex items-center justify-between text-sm py-1.5 border-b border-white/5 last:border-0">
                     <div className="flex items-center gap-2">
-                      <div style={{...getSpriteStyle(monster.sprite, 20), opacity: best ? 1 : 0.2}} className="rounded shrink-0 overflow-hidden" />
+                      <monster.icon className={cn("w-4 h-4", best ? monster.color : "text-muted-foreground/30")} />
                       {best ? (
                         <div className="flex flex-col leading-none">
                           <span className="font-mono text-slate-200">{formatTime(best.timeSeconds)}</span>
