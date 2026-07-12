@@ -84,6 +84,7 @@ export class DatabaseStorage implements IStorage {
         date: hunts.date,
         attempts: hunts.attempts,
         mode: hunts.mode,
+        videoUrl: hunts.videoUrl,
       })
       .from(hunts)
       .innerJoin(users, eq(hunts.userId, users.id));

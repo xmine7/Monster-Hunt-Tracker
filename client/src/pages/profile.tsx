@@ -94,6 +94,7 @@ export default function ProfilePage() {
   const [modeFilter, setModeFilter] = useState<ModeFilter>("overall");
   const [weaponFilter, setWeaponFilter] = useState<string>("all");
   const [monsterFilter, setMonsterFilter] = useState<string>("all");
+  const [allHuntsMode, setAllHuntsMode] = useState<string>("all");
 
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ["profile", username],
@@ -122,6 +123,7 @@ export default function ProfilePage() {
 
   const allHuntsSorted = useMemo(() => {
     let hunts = profile?.hunts ?? [];
+    if (allHuntsMode !== "all") hunts = hunts.filter(h => h.mode === allHuntsMode);
     if (weaponFilter !== "all") hunts = hunts.filter(h => h.weaponId === weaponFilter);
     if (monsterFilter !== "all") hunts = hunts.filter(h => h.monsterId === monsterFilter);
     return [...hunts].sort((a, b) => {
@@ -240,6 +242,17 @@ export default function ProfilePage() {
                   <SlidersHorizontal className="w-3.5 h-3.5 text-primary" /> All Hunts
                 </h2>
                 <div className="flex items-center gap-2">
+                  <Select value={allHuntsMode} onValueChange={setAllHuntsMode}>
+                    <SelectTrigger className="h-7 text-xs bg-card/50 border-white/10 w-[90px]">
+                      <SelectValue placeholder="Mode" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-white/10 text-slate-200">
+                      <SelectItem value="all">All Modes</SelectItem>
+                      <SelectItem value="solo">Solo</SelectItem>
+                      <SelectItem value="duo">Duo</SelectItem>
+                      <SelectItem value="squad">Squad</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <Select value={monsterFilter} onValueChange={setMonsterFilter}>
                     <SelectTrigger className="h-7 text-xs bg-card/50 border-white/10 w-[130px]">
                       <SelectValue placeholder="Monster" />

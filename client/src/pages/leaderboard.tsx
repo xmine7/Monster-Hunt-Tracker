@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { MONSTERS, WEAPONS, getRank, getPoints, formatTime } from "@/lib/mh-data";
-import { Trophy, ArrowLeft, Medal, Star, Skull, Crown, Swords, Clock, Search, UserRound, Users } from "lucide-react";
+import { Trophy, ArrowLeft, Medal, Star, Skull, Crown, Swords, Clock, Search, UserRound, Users, Link } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ type HuntWithUser = {
   date: string;
   attempts: number;
   mode: string;
+  videoUrl: string | null;
 };
 
 type LeaderboardMode = "all" | "solo" | "duo" | "squad";
@@ -324,19 +325,28 @@ export default function Leaderboard() {
                         </div>
                         <div className="text-sm text-muted-foreground">{weapon?.name ?? hunt.weaponId}</div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-2xl font-display font-bold text-primary font-mono">
-                          {formatTime(hunt.timeSeconds)}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {hunt.videoUrl && (
+                          <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
+                            onClick={e => e.stopPropagation()}
+                            className="text-primary/60 hover:text-primary transition-colors" title="Watch proof">
+                            <Link className="w-4 h-4" />
+                          </a>
+                        )}
+                        <div className="text-right">
+                          <div className="text-2xl font-display font-bold text-primary font-mono">
+                            {formatTime(hunt.timeSeconds)}
+                          </div>
+                          <Badge variant="outline" className={cn(
+                            "text-xs border",
+                            getRank(hunt.timeSeconds) === "gold" && "border-yellow-400/50 text-yellow-400",
+                            getRank(hunt.timeSeconds) === "silver" && "border-slate-300/50 text-slate-300",
+                            getRank(hunt.timeSeconds) === "bronze" && "border-amber-700/50 text-amber-700",
+                            getRank(hunt.timeSeconds) === "skull" && "border-gray-500/50 text-gray-500",
+                          )}>
+                            {getRank(hunt.timeSeconds).toUpperCase()}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className={cn(
-                          "text-xs border",
-                          getRank(hunt.timeSeconds) === "gold" && "border-yellow-400/50 text-yellow-400",
-                          getRank(hunt.timeSeconds) === "silver" && "border-slate-300/50 text-slate-300",
-                          getRank(hunt.timeSeconds) === "bronze" && "border-amber-700/50 text-amber-700",
-                          getRank(hunt.timeSeconds) === "skull" && "border-gray-500/50 text-gray-500",
-                        )}>
-                          {getRank(hunt.timeSeconds).toUpperCase()}
-                        </Badge>
                       </div>
                     </CardContent>
                   </Card>
@@ -410,19 +420,28 @@ export default function Leaderboard() {
                       </div>
                       <div className="text-xs text-muted-foreground">{hunt.attempts} attempt{hunt.attempts !== 1 ? "s" : ""} logged</div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-2xl font-display font-bold text-primary font-mono">
-                        {formatTime(hunt.timeSeconds)}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {hunt.videoUrl && (
+                        <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="text-primary/60 hover:text-primary transition-colors" title="Watch proof">
+                          <Link className="w-4 h-4" />
+                        </a>
+                      )}
+                      <div className="text-right">
+                        <div className="text-2xl font-display font-bold text-primary font-mono">
+                          {formatTime(hunt.timeSeconds)}
+                        </div>
+                        <Badge variant="outline" className={cn(
+                          "text-xs border",
+                          getRank(hunt.timeSeconds) === "gold" && "border-yellow-400/50 text-yellow-400",
+                          getRank(hunt.timeSeconds) === "silver" && "border-slate-300/50 text-slate-300",
+                          getRank(hunt.timeSeconds) === "bronze" && "border-amber-700/50 text-amber-700",
+                          getRank(hunt.timeSeconds) === "skull" && "border-gray-500/50 text-gray-500",
+                        )}>
+                          {getRank(hunt.timeSeconds).toUpperCase()}
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className={cn(
-                        "text-xs border",
-                        getRank(hunt.timeSeconds) === "gold" && "border-yellow-400/50 text-yellow-400",
-                        getRank(hunt.timeSeconds) === "silver" && "border-slate-300/50 text-slate-300",
-                        getRank(hunt.timeSeconds) === "bronze" && "border-amber-700/50 text-amber-700",
-                        getRank(hunt.timeSeconds) === "skull" && "border-gray-500/50 text-gray-500",
-                      )}>
-                        {getRank(hunt.timeSeconds).toUpperCase()}
-                      </Badge>
                     </div>
                   </CardContent>
                 </Card>
