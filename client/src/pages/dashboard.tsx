@@ -483,22 +483,21 @@ export default function Dashboard() {
               <Diamond className="w-6 h-6 fill-primary/20" />
             </div>
           </div>
-          <div className="flex items-center gap-3 border-l border-white/10 pl-4">
+          <div className="flex flex-col items-center gap-1.5 border-l border-white/10 pl-4">
             {/* Avatar circle */}
             <div className={cn("w-14 h-14 rounded-full flex items-center justify-center text-2xl shrink-0 border-2", getAvatar(user?.avatar).bg, getAvatar(user?.avatar).border)}>
               {getAvatar(user?.avatar).emoji}
             </div>
-            <div className="flex flex-col items-end gap-1.5">
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <User className="w-3.5 h-3.5" />
-                <span className="font-bold text-slate-300">{user?.username}</span>
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <User className="w-3 h-3" />
+              <span className="font-bold text-slate-300">{user?.username}</span>
+            </div>
+            {user?.hunterId && (
+              <div className="text-xs text-muted-foreground/70">
+                Hunter ID: <span className="font-mono text-primary/80">{user.hunterId}</span>
               </div>
-              {user?.hunterId && (
-                <div className="text-xs text-muted-foreground/70">
-                  Hunter ID: <span className="font-mono text-primary/80">{user.hunterId}</span>
-                </div>
-              )}
-            <div className="flex items-center gap-1.5">
+            )}
+            <div className="flex items-center gap-1.5 mt-0.5">
               <Button
                 variant="outline"
                 size="sm"
@@ -517,7 +516,6 @@ export default function Dashboard() {
               >
                 <LogOut className="w-3 h-3" /> Logout
               </Button>
-            </div>
             </div>
           </div>
 
