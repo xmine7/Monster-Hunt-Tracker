@@ -362,7 +362,7 @@ export default function Leaderboard() {
                           {hunt.username}
                         </div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1.5">
-                          {weapon && <img src={weapon.sprite} alt={weapon.name} className="w-4 h-4 object-contain opacity-60 invert" />}
+                          {weapon && <img src={weapon.sprite} alt={weapon.name} className="w-4 h-4 object-contain brightness-0 invert" />}
                           {weapon?.name ?? hunt.weaponId}
                         </div>
                       </div>
@@ -418,7 +418,7 @@ export default function Leaderboard() {
                 {WEAPONS.map((w) => (
                   <SelectItem key={w.id} value={w.id}>
                     <span className="flex items-center gap-2">
-                      <img src={w.sprite} alt="" className="w-4 h-4 object-contain opacity-70 invert" />
+                      <img src={w.sprite} alt="" className="w-4 h-4 object-contain brightness-0 invert" />
                       {w.name}
                     </span>
                   </SelectItem>

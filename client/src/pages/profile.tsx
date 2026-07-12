@@ -70,7 +70,7 @@ function ModeCard({ mode, hunts }: { mode: string; hunts: ProfileHunt[] }) {
               </div>
               {best && (
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {weapon && <img src={weapon.sprite} alt={weapon.name} className="w-4 h-4 object-contain opacity-70 invert" title={weapon.name} />}
+                  {weapon && <img src={weapon.sprite} alt={weapon.name} className="w-4 h-4 object-contain brightness-0 invert" title={weapon.name} />}
                   {best.videoUrl && (
                     <a href={best.videoUrl} target="_blank" rel="noopener noreferrer"
                       className="text-primary/50 hover:text-primary transition-colors"
@@ -350,7 +350,7 @@ export default function ProfilePage() {
                               <span className="text-muted-foreground/40 text-xs ml-1 capitalize">({hunt.mode})</span>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              {weapon && <img src={weapon.sprite} alt={weapon.name} title={weapon.name} className="w-4 h-4 object-contain opacity-60 invert" />}
+                              {weapon && <img src={weapon.sprite} alt={weapon.name} title={weapon.name} className="w-4 h-4 object-contain brightness-0 invert" />}
                               {hunt.videoUrl && (
                                 <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
                                   title="Watch proof" className="text-primary/50 hover:text-primary transition-colors">
