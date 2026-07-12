@@ -132,7 +132,7 @@ export default function ProfilePage() {
       if (ra !== rb) return ra - rb;
       return a.timeSeconds - b.timeSeconds;
     });
-  }, [profile, weaponFilter, monsterFilter]);
+  }, [profile, allHuntsMode, weaponFilter, monsterFilter]);
 
   const modeButtons: { value: ModeFilter; label: string }[] = [
     { value: "overall", label: "Overall" },
