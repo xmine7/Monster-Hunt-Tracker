@@ -4,6 +4,9 @@ export type AuthUser = {
   id: string;
   username: string;
   hunterId: string | null;
+  avatar: string | null;
+  youtubeUrl: string | null;
+  discordTag: string | null;
 };
 
 export function useUser() {

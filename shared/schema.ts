@@ -8,6 +8,9 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   hunterId: text("hunter_id").unique(),
   password: text("password"),
+  avatar: text("avatar"),
+  youtubeUrl: text("youtube_url"),
+  discordTag: text("discord_tag"),
 });
 
 export const hunts = pgTable("hunts", {

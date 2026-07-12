@@ -108,6 +108,11 @@ app.use((req, res, next) => {
     ALTER TABLE hunts ADD COLUMN IF NOT EXISTS notes TEXT
   `).catch(() => {});
 
+  // Add avatar and social columns to users
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS youtube_url TEXT`).catch(() => {});
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS discord_tag TEXT`).catch(() => {});
+
   // Make password nullable (migrating to username-only login)
   await pool.query(`
     ALTER TABLE users ALTER COLUMN password DROP NOT NULL

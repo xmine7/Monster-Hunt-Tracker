@@ -12,6 +12,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
 
   updateUsername(userId: string, username: string): Promise<User | undefined>;
+  updateProfile(userId: string, data: { avatar?: string; youtubeUrl?: string; discordTag?: string }): Promise<User | undefined>;
   deleteHunt(userId: string, huntId: string): Promise<void>;
   getAllHuntsWithUsers(): Promise<HuntWithUser[]>;
 
@@ -125,6 +126,11 @@ export class DatabaseStorage implements IStorage {
 
   async updateUsername(userId: string, username: string): Promise<User | undefined> {
     const [user] = await db.update(users).set({ username }).where(eq(users.id, userId)).returning();
+    return user;
+  }
+
+  async updateProfile(userId: string, data: { avatar?: string; youtubeUrl?: string; discordTag?: string }): Promise<User | undefined> {
+    const [user] = await db.update(users).set(data).where(eq(users.id, userId)).returning();
     return user;
   }
 

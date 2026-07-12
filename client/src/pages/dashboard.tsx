@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useUser, useLogout } from "@/hooks/use-user";
 import { useSettings } from "@/hooks/use-settings";
+import { AVATARS, getAvatar } from "@/lib/avatars";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -85,6 +86,27 @@ export default function Dashboard() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [usernameMsg, setUsernameMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const [socialYoutube, setSocialYoutube] = useState("");
+  const [socialDiscord, setSocialDiscord] = useState("");
+  const [socialMsg, setSocialMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: { avatar?: string; youtubeUrl?: string; discordTag?: string }) => {
+      const res = await fetch("/api/me/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/me"] });
+      setSocialMsg({ ok: true, text: "Saved!" });
+    },
+    onError: () => setSocialMsg({ ok: false, text: "Failed to save" }),
+  });
 
   const changeUsernameMutation = useMutation({
     mutationFn: async (username: string) => {
@@ -461,16 +483,21 @@ export default function Dashboard() {
               <Diamond className="w-6 h-6 fill-primary/20" />
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2 border-l border-white/10 pl-4">
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <User className="w-3.5 h-3.5" />
-              <span className="font-bold text-slate-300">{user?.username}</span>
+          <div className="flex items-center gap-3 border-l border-white/10 pl-4">
+            {/* Avatar circle */}
+            <div className={cn("w-14 h-14 rounded-full flex items-center justify-center text-2xl shrink-0 border-2", getAvatar(user?.avatar).bg, getAvatar(user?.avatar).border)}>
+              {getAvatar(user?.avatar).emoji}
             </div>
-            {user?.hunterId && (
-              <div className="text-xs text-muted-foreground/70">
-                Hunter ID: <span className="font-mono text-primary/80">{user.hunterId}</span>
+            <div className="flex flex-col items-end gap-1.5">
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <User className="w-3.5 h-3.5" />
+                <span className="font-bold text-slate-300">{user?.username}</span>
               </div>
-            )}
+              {user?.hunterId && (
+                <div className="text-xs text-muted-foreground/70">
+                  Hunter ID: <span className="font-mono text-primary/80">{user.hunterId}</span>
+                </div>
+              )}
             <div className="flex items-center gap-1.5">
               <Button
                 variant="outline"
@@ -490,6 +517,7 @@ export default function Dashboard() {
               >
                 <LogOut className="w-3 h-3" /> Logout
               </Button>
+            </div>
             </div>
           </div>
 
@@ -538,6 +566,65 @@ export default function Dashboard() {
                   </label>
                 </div>
 
+                {/* Avatar picker */}
+                <div className="space-y-3 border-t border-white/10 pt-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Avatar</p>
+                  <div className="grid grid-cols-6 gap-2">
+                    {AVATARS.map(av => (
+                      <button
+                        key={av.id}
+                        title={av.label}
+                        onClick={() => updateProfileMutation.mutate({ avatar: av.id })}
+                        className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 transition-all",
+                          av.bg, av.border,
+                          user?.avatar === av.id || (!user?.avatar && av.id === "default")
+                            ? "ring-2 ring-primary ring-offset-1 ring-offset-background scale-110"
+                            : "opacity-60 hover:opacity-100"
+                        )}
+                      >
+                        {av.emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Socials */}
+                <div className="space-y-3 border-t border-white/10 pt-4">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Socials</p>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">YouTube channel URL</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder={user?.youtubeUrl ?? "https://youtube.com/@..."}
+                        value={socialYoutube}
+                        onChange={(e) => { setSocialYoutube(e.target.value); setSocialMsg(null); }}
+                        className="bg-background/50 border-white/10 text-sm h-8"
+                      />
+                      <Button size="sm" className="h-8 bg-primary text-background font-bold shrink-0"
+                        onClick={() => updateProfileMutation.mutate({ youtubeUrl: socialYoutube.trim() || undefined })}
+                        disabled={!socialYoutube.trim() || updateProfileMutation.isPending}>Save</Button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Discord tag</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder={user?.discordTag ?? "username#0000 or @username"}
+                        value={socialDiscord}
+                        onChange={(e) => { setSocialDiscord(e.target.value); setSocialMsg(null); }}
+                        className="bg-background/50 border-white/10 text-sm h-8"
+                      />
+                      <Button size="sm" className="h-8 bg-primary text-background font-bold shrink-0"
+                        onClick={() => updateProfileMutation.mutate({ discordTag: socialDiscord.trim() || undefined })}
+                        disabled={!socialDiscord.trim() || updateProfileMutation.isPending}>Save</Button>
+                    </div>
+                  </div>
+                  {socialMsg && (
+                    <p className={cn("text-xs", socialMsg.ok ? "text-green-400" : "text-destructive")}>{socialMsg.text}</p>
+                  )}
+                </div>
+
                 {/* Change name */}
                 <div className="space-y-2 border-t border-white/10 pt-4">
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Account</p>
@@ -570,7 +657,7 @@ export default function Dashboard() {
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Feedback</p>
                   <p className="text-xs text-muted-foreground">Found a bug or have a suggestion? Let us know!</p>
                   <a
-                    href="https://discord.com"
+                    href="https://discord.gg/Z9TByDdy"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block text-center text-xs bg-white/5 hover:bg-white/10 border border-white/10 rounded-md py-2 transition-colors"

@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { MONSTERS, WEAPONS, getRank, formatTime } from "@/lib/mh-data";
-import { ArrowLeft, Medal, Skull, User, Link, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, Medal, Skull, User, Link, SlidersHorizontal, Youtube } from "lucide-react";
+import { getAvatar } from "@/lib/avatars";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -99,7 +100,7 @@ export default function ProfilePage() {
     queryFn: async () => {
       const res = await fetch(`/api/profile/${encodeURIComponent(username)}`);
       if (!res.ok) throw new Error("Hunter not found");
-      return res.json() as Promise<{ username: string; hunterId: string | null; hunts: ProfileHunt[] }>;
+      return res.json() as Promise<{ username: string; hunterId: string | null; avatar: string | null; youtubeUrl: string | null; discordTag: string | null; hunts: ProfileHunt[] }>;
     },
   });
 
@@ -160,20 +161,40 @@ export default function ProfilePage() {
       {profile && (
         <>
           {/* Header */}
-          <Card className="bg-gradient-to-br from-card/60 to-primary/10 border-primary/20">
-            <CardContent className="flex items-center gap-4 p-6">
-              <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center shrink-0 border border-primary/30">
-                <User className="w-7 h-7 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-display font-bold text-white">{profile.username}</h1>
-                {isOwnProfile && profile.hunterId && (
-                  <p className="text-sm text-muted-foreground font-mono mt-0.5">Hunter ID: {profile.hunterId}</p>
-                )}
-                <p className="text-xs text-muted-foreground mt-1">{profile.hunts.length} hunt{profile.hunts.length !== 1 ? "s" : ""} logged</p>
-              </div>
-            </CardContent>
-          </Card>
+          {(() => {
+            const av = getAvatar(profile.avatar);
+            return (
+              <Card className="bg-gradient-to-br from-card/60 to-primary/10 border-primary/20">
+                <CardContent className="flex items-center gap-4 p-6">
+                  <div className={cn("w-16 h-16 rounded-full flex items-center justify-center text-3xl shrink-0 border-2", av.bg, av.border)}>
+                    {av.emoji}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-3xl font-display font-bold text-white">{profile.username}</h1>
+                    {isOwnProfile && profile.hunterId && (
+                      <p className="text-sm text-muted-foreground font-mono mt-0.5">Hunter ID: {profile.hunterId}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">{profile.hunts.length} hunt{profile.hunts.length !== 1 ? "s" : ""} logged</p>
+                    {(profile.youtubeUrl || profile.discordTag) && (
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
+                        {profile.youtubeUrl && (
+                          <a href={profile.youtubeUrl} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors">
+                            <Youtube className="w-3.5 h-3.5" /> YouTube
+                          </a>
+                        )}
+                        {profile.discordTag && (
+                          <span className="flex items-center gap-1 text-xs text-indigo-400">
+                            <User className="w-3.5 h-3.5" /> {profile.discordTag}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
 
           {/* Mode filter tabs */}
           <div className="flex rounded-lg border border-white/10 overflow-hidden text-xs font-bold">

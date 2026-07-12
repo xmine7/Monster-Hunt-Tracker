@@ -14,6 +14,13 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Update profile (avatar + socials)
+  app.patch("/api/me/profile", requireAuth, async (req, res) => {
+    const { avatar, youtubeUrl, discordTag } = req.body;
+    const user = await storage.updateProfile(req.session.userId!, { avatar, youtubeUrl, discordTag });
+    res.json({ id: user?.id, username: user?.username, hunterId: user?.hunterId, avatar: user?.avatar, youtubeUrl: user?.youtubeUrl, discordTag: user?.discordTag });
+  });
+
   // Change username
   app.patch("/api/me/username", requireAuth, async (req, res) => {
     const { username } = req.body;
@@ -37,7 +44,7 @@ export async function registerRoutes(
         req.session.destroy(() => {});
         return res.status(401).json(null);
       }
-      res.json({ id: user.id, username: user.username, hunterId: user.hunterId });
+      res.json({ id: user.id, username: user.username, hunterId: user.hunterId, avatar: user.avatar, youtubeUrl: user.youtubeUrl, discordTag: user.discordTag });
     } catch {
       res.status(500).json(null);
     }
@@ -160,7 +167,7 @@ export async function registerRoutes(
     try {
       const profile = await storage.getPublicProfile(req.params.username);
       if (!profile) return res.status(404).json({ error: "Hunter not found" });
-      res.json({ username: profile.user.username, hunterId: profile.user.hunterId, hunts: profile.hunts });
+      res.json({ username: profile.user.username, hunterId: profile.user.hunterId, avatar: profile.user.avatar, youtubeUrl: profile.user.youtubeUrl, discordTag: profile.user.discordTag, hunts: profile.hunts });
     } catch {
       res.status(500).json({ error: "Failed to fetch profile" });
     }
