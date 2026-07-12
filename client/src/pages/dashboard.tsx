@@ -453,25 +453,27 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen p-4 md:p-8 space-y-8 font-sans text-slate-200">
       {/* Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card/50 backdrop-blur-md p-6 rounded-xl border border-white/5">
-        <div>
-          <h1 className="text-4xl font-display font-bold text-white tracking-wide uppercase">
-            Hunter's <span className="text-primary">Log</span>
-          </h1>
-          <p className="text-muted-foreground flex items-center gap-2">
-            <Trophy className="w-4 h-4" /> 
-            World Speedrun Tracker
-          </p>
-          <Button
-            data-testid="button-leaderboard"
-            variant="outline"
-            size="sm"
-            onClick={() => setLocation("/leaderboard")}
-            className="mt-2 bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white h-7 text-xs gap-1.5"
-          >
-            <Trophy className="w-3 h-3" /> View Leaderboard
-          </Button>
-          <div className="mt-3">
+      <header className="grid grid-cols-2 bg-card/50 backdrop-blur-md p-6 rounded-xl border border-white/5">
+        <div className="flex flex-col justify-between gap-3 pr-6">
+          <div>
+            <h1 className="text-4xl font-display font-bold text-white tracking-wide uppercase">
+              Hunter's <span className="text-primary">Log</span>
+            </h1>
+            <p className="text-muted-foreground flex items-center gap-2 mt-1">
+              <Trophy className="w-4 h-4" /> 
+              World Speedrun Tracker
+            </p>
+            <Button
+              data-testid="button-leaderboard"
+              variant="outline"
+              size="sm"
+              onClick={() => setLocation("/leaderboard")}
+              className="mt-2 bg-background/50 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white h-7 text-xs gap-1.5"
+            >
+              <Trophy className="w-3 h-3" /> View Leaderboard
+            </Button>
+          </div>
+          <div>
             <div className="text-xs text-muted-foreground uppercase tracking-wider">Total Score</div>
             <div className="text-3xl font-display font-bold text-primary flex items-center gap-2">
               <span className="flex items-baseline gap-1">
@@ -482,7 +484,7 @@ export default function Dashboard() {
           </div>
         </div>
         
-        <div className="flex flex-col items-center gap-1.5 border-l border-white/20 pl-6">
+        <div className="flex flex-col items-center justify-center gap-1.5 border-l border-white/20 pl-6">
             {/* Avatar circle */}
             <div className={cn("w-14 h-14 rounded-full flex items-center justify-center text-2xl shrink-0 border-2", getAvatar(user?.avatar).bg, getAvatar(user?.avatar).border)}>
               {getAvatar(user?.avatar).emoji}
