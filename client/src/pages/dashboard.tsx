@@ -904,7 +904,7 @@ export default function Dashboard() {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
                       <CardTitle className="font-display text-xl text-white flex items-center gap-2">
-                        {(() => { const w = WEAPONS.find(wp => wp.id === weapon.id); return w ? <img src={w.sprite} alt="" className="w-7 h-7 object-contain brightness-0 invert" /> : null; })()}
+                        {(() => { const w = WEAPONS.find(wp => wp.id === weapon.id); return w ? <img src={w.sprite} alt="" className="w-7 h-7 object-contain " /> : null; })()}
                         {weaponName}
                       </CardTitle>
                       <div className={cn(
