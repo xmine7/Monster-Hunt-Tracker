@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { MONSTERS, WEAPONS, getRank, formatTime } from "@/lib/mh-data";
+import { MONSTERS, WEAPONS, getRank, formatTime, getSpriteStyle } from "@/lib/mh-data";
 import { ArrowLeft, Medal, Skull, User, Link, SlidersHorizontal, Youtube } from "lucide-react";
 import { getAvatar } from "@/lib/avatars";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,7 +57,7 @@ function ModeCard({ mode, hunts }: { mode: string; hunts: ProfileHunt[] }) {
           return (
             <div key={monster.id} className="flex items-center justify-between gap-1 text-xs">
               <div className="flex items-center gap-1.5 min-w-0">
-                <monster.icon className={cn("w-3.5 h-3.5 shrink-0", monster.color)} />
+                <div style={getSpriteStyle(monster.sprite, 16)} className="rounded shrink-0 overflow-hidden" />
                 {best ? (
                   <span className="font-mono text-slate-200 font-medium">{formatTime(best.timeSeconds)}</span>
                 ) : (
@@ -280,7 +280,7 @@ export default function ProfilePage() {
                         <div key={hunt.id} className="px-4 py-3 border-b border-white/5 last:border-0">
                           <div className="flex items-center gap-3 text-sm">
                             <RankIcon rank={rank} className="w-4 h-4 shrink-0" />
-                            {monster && <monster.icon className={cn("w-4 h-4 shrink-0", monster.color)} />}
+                            {monster && <div style={getSpriteStyle(monster.sprite, 20)} className="rounded shrink-0 overflow-hidden" />}
                             <div className="flex-1 min-w-0">
                               <span className="text-slate-300 text-xs">{monster?.name}</span>
                               <span className="text-muted-foreground/50 text-xs"> · {weapon?.name}</span>

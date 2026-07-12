@@ -1,12 +1,23 @@
-import { LucideIcon, Skull, Medal, Star, Diamond, Zap, Flame, Snowflake, Circle } from "lucide-react";
+import { Skull, Medal, Star, Diamond, Zap, Flame, Snowflake, Circle } from "lucide-react";
 
 export type Rank = "gold" | "silver" | "bronze" | "skull";
+
+// Sprite sheet: 2560×1440px, 10 cols × 8 rows, each cell 256×180px
+// Grid positions (col, row) are best-guess from MHW compendium order — let me know if any look off
+const CELL_W = 256;
+const CELL_H = 180;
+
+export interface MonsterSprite {
+  col: number;
+  row: number;
+}
 
 export interface Monster {
   id: string;
   name: string;
-  icon: any; // Lucide icon or string
+  icon: any; // Lucide icon or string (fallback)
   color: string;
+  sprite: MonsterSprite;
 }
 
 export interface Weapon {
@@ -26,12 +37,24 @@ export interface HuntRecord {
 }
 
 export const MONSTERS: Monster[] = [
-  { id: "fatalis", name: "Fatalis", icon: Flame, color: "text-red-500" },
-  { id: "velkhana", name: "Arch Tempered Velkhana", icon: Snowflake, color: "text-blue-300" },
-  { id: "alatreon", name: "Alatreon", icon: Zap, color: "text-yellow-400" },
-  { id: "kulve", name: "Kulve Taroth", icon: Diamond, color: "text-cyan-400" },
-  { id: "nergigante", name: "Tempered Nergigante", icon: Circle, color: "text-gray-400" },
+  { id: "fatalis",    name: "Fatalis",               icon: Flame,     color: "text-red-500",    sprite: { col: 0, row: 7 } },
+  { id: "velkhana",  name: "Arch Tempered Velkhana", icon: Snowflake, color: "text-blue-300",   sprite: { col: 4, row: 4 } },
+  { id: "alatreon",  name: "Alatreon",               icon: Zap,       color: "text-yellow-400", sprite: { col: 5, row: 6 } },
+  { id: "kulve",     name: "Kulve Taroth",           icon: Diamond,   color: "text-cyan-400",   sprite: { col: 8, row: 3 } },
+  { id: "nergigante",name: "Tempered Nergigante",    icon: Circle,    color: "text-gray-400",   sprite: { col: 4, row: 3 } },
 ];
+
+export function getSpriteStyle(sprite: MonsterSprite, displaySize: number) {
+  const scale = displaySize / CELL_W;
+  return {
+    backgroundImage: "url('/monsters-sprite.png')",
+    backgroundSize: `${2560 * scale}px ${1440 * scale}px`,
+    backgroundPosition: `-${sprite.col * CELL_W * scale}px -${sprite.row * CELL_H * scale}px`,
+    backgroundRepeat: "no-repeat",
+    width: `${displaySize}px`,
+    height: `${Math.round(CELL_H * scale)}px`,
+  };
+}
 
 export const WEAPONS: Weapon[] = [
   { id: "gs", name: "Great Sword" },
