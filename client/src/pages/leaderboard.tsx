@@ -23,7 +23,42 @@ type HuntWithUser = {
   attempts: number;
   mode: string;
   videoUrl: string | null;
+  buildUrl: string | null;
+  notes: string | null;
 };
+
+function HuntIcons({ hunt, onClick }: { hunt: HuntWithUser; onClick: (e: React.MouseEvent) => void }) {
+  return (
+    <div className="flex items-center gap-2" onClick={onClick}>
+      {hunt.videoUrl && (
+        <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
+          className="text-primary/60 hover:text-primary transition-colors" title="Watch proof">
+          <Link className="w-4 h-4" />
+        </a>
+      )}
+      {hunt.buildUrl && (
+        hunt.buildUrl.startsWith("data:") ? (
+          <button onClick={e => { e.stopPropagation(); onClick(e); }}
+            className="text-yellow-500/60 hover:text-yellow-400 transition-colors" title="View build">
+            <Star className="w-4 h-4" />
+          </button>
+        ) : (
+          <a href={hunt.buildUrl} target="_blank" rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="text-yellow-500/60 hover:text-yellow-400 transition-colors" title="View build">
+            <Star className="w-4 h-4" />
+          </a>
+        )
+      )}
+      {hunt.notes && (
+        <span title={hunt.notes} className="text-slate-400/60 hover:text-slate-300 transition-colors cursor-default">
+          <Medal className="w-4 h-4" />
+        </span>
+      )}
+    </div>
+  );
+}
 
 type LeaderboardMode = "all" | "solo" | "duo" | "squad";
 
@@ -40,6 +75,7 @@ export default function Leaderboard() {
   const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0].id);
   const [searchQuery, setSearchQuery] = useState("");
   const [leaderboardMode, setLeaderboardMode] = useState<LeaderboardMode>("all");
+  const [buildModalUrl, setBuildModalUrl] = useState<string | null>(null);
 
   const { data: allHunts = [], isLoading } = useQuery<HuntWithUser[]>({
     queryKey: ["/api/leaderboard"],
@@ -325,14 +361,8 @@ export default function Leaderboard() {
                         </div>
                         <div className="text-sm text-muted-foreground">{weapon?.name ?? hunt.weaponId}</div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {hunt.videoUrl && (
-                          <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
-                            onClick={e => e.stopPropagation()}
-                            className="text-primary/60 hover:text-primary transition-colors" title="Watch proof">
-                            <Link className="w-4 h-4" />
-                          </a>
-                        )}
+                      <div className="flex items-center gap-3 shrink-0">
+                        <HuntIcons hunt={hunt} onClick={(e) => { e.stopPropagation(); if (hunt.buildUrl?.startsWith("data:")) setBuildModalUrl(hunt.buildUrl); }} />
                         <div className="text-right">
                           <div className="text-2xl font-display font-bold text-primary font-mono">
                             {formatTime(hunt.timeSeconds)}
@@ -420,14 +450,8 @@ export default function Leaderboard() {
                       </div>
                       <div className="text-xs text-muted-foreground">{hunt.attempts} attempt{hunt.attempts !== 1 ? "s" : ""} logged</div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {hunt.videoUrl && (
-                        <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
-                          onClick={e => e.stopPropagation()}
-                          className="text-primary/60 hover:text-primary transition-colors" title="Watch proof">
-                          <Link className="w-4 h-4" />
-                        </a>
-                      )}
+                    <div className="flex items-center gap-3 shrink-0">
+                      <HuntIcons hunt={hunt} onClick={(e) => { e.stopPropagation(); if (hunt.buildUrl?.startsWith("data:")) setBuildModalUrl(hunt.buildUrl); }} />
                       <div className="text-right">
                         <div className="text-2xl font-display font-bold text-primary font-mono">
                           {formatTime(hunt.timeSeconds)}
@@ -450,6 +474,20 @@ export default function Leaderboard() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Build image modal */}
+      {buildModalUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          onClick={() => setBuildModalUrl(null)}>
+          <div className="relative max-w-2xl w-full" onClick={e => e.stopPropagation()}>
+            <img src={buildModalUrl} alt="Build screenshot" className="w-full rounded-xl border border-white/10 shadow-2xl" />
+            <button onClick={() => setBuildModalUrl(null)}
+              className="absolute top-3 right-3 bg-black/60 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/80 text-lg">
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

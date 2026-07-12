@@ -138,6 +138,17 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/hunts/:id", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const { videoUrl, buildUrl, notes, timeSeconds } = req.body;
+      const updated = await storage.updateHuntById(userId, req.params.id, { videoUrl, buildUrl, notes, timeSeconds });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update hunt" });
+    }
+  });
+
   app.delete("/api/hunts/:id", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId!;

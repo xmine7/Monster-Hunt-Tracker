@@ -1,14 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { MONSTERS, WEAPONS, getRank, formatTime } from "@/lib/mh-data";
-import { ArrowLeft, Medal, Skull, User, Link, SlidersHorizontal, Youtube } from "lucide-react";
+import { MONSTERS, WEAPONS, getRank, formatTime, parseTime } from "@/lib/mh-data";
+import { ArrowLeft, Medal, Skull, User, Link, SlidersHorizontal, Youtube, Pencil, Star, MessageSquare } from "lucide-react";
 import { getAvatar } from "@/lib/avatars";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useUser } from "@/hooks/use-user";
 import { cn } from "@/lib/utils";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 
 const RANK_ORDER = { gold: 0, silver: 1, bronze: 2, skull: 3 } as const;
 
@@ -91,10 +94,55 @@ export default function ProfilePage() {
   const username = params.username;
   const isOwnProfile = currentUser?.username === username;
 
+  const queryClient = useQueryClient();
   const [modeFilter, setModeFilter] = useState<ModeFilter>("overall");
   const [weaponFilter, setWeaponFilter] = useState<string>("all");
   const [monsterFilter, setMonsterFilter] = useState<string>("all");
   const [allHuntsMode, setAllHuntsMode] = useState<string>("all");
+  const [editHunt, setEditHunt] = useState<ProfileHunt | null>(null);
+  const [editTime, setEditTime] = useState("");
+  const [editVideo, setEditVideo] = useState("");
+  const [editBuild, setEditBuild] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [buildModalUrl, setBuildModalUrl] = useState<string | null>(null);
+  const buildFileRef = useRef<HTMLInputElement>(null);
+
+  const editMutation = useMutation({
+    mutationFn: async (data: { videoUrl?: string | null; buildUrl?: string | null; notes?: string | null; timeSeconds?: number }) => {
+      const res = await fetch(`/api/hunts/${editHunt!.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed to update");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile", username] });
+      setEditHunt(null);
+    },
+  });
+
+  const openEdit = (hunt: ProfileHunt) => {
+    setEditHunt(hunt);
+    const t = hunt.timeSeconds;
+    const m = Math.floor(t / 60);
+    const s = t % 60;
+    setEditTime(`${m}:${String(s).padStart(2, "0")}`);
+    setEditVideo(hunt.videoUrl || "");
+    setEditBuild(hunt.buildUrl || "");
+    setEditNotes(hunt.notes || "");
+  };
+
+  const handleEditSave = () => {
+    const time = parseTime(editTime);
+    editMutation.mutate({
+      timeSeconds: time || editHunt!.timeSeconds,
+      videoUrl: editVideo.trim() || null,
+      buildUrl: editBuild.trim() || null,
+      notes: editNotes.trim() || null,
+    });
+  };
 
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ["profile", username],
@@ -290,7 +338,9 @@ export default function ProfilePage() {
                       const weapon = WEAPONS.find(w => w.id === hunt.weaponId);
                       const rank = getRank(hunt.timeSeconds);
                       return (
-                        <div key={hunt.id} className="px-4 py-3 border-b border-white/5 last:border-0">
+                        <div key={hunt.id}
+                          className={cn("px-4 py-3 border-b border-white/5 last:border-0", isOwnProfile && "cursor-pointer hover:bg-white/5 transition-colors")}
+                          onClick={() => isOwnProfile && openEdit(hunt)}>
                           <div className="flex items-center gap-3 text-sm">
                             <RankIcon rank={rank} className="w-4 h-4 shrink-0" />
                             {monster && <monster.icon className={cn("w-4 h-4 shrink-0", monster.color)} />}
@@ -300,24 +350,36 @@ export default function ProfilePage() {
                               <span className="text-muted-foreground/40 text-xs ml-1 capitalize">({hunt.mode})</span>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="font-mono text-slate-200 font-medium">{formatTime(hunt.timeSeconds)}</span>
                               {hunt.videoUrl && (
                                 <a href={hunt.videoUrl} target="_blank" rel="noopener noreferrer"
+                                  onClick={e => e.stopPropagation()}
                                   className="text-primary/60 hover:text-primary transition-colors" title="Watch proof">
                                   <Link className="w-3.5 h-3.5" />
                                 </a>
                               )}
                               {hunt.buildUrl && (
-                                <a href={hunt.buildUrl} target="_blank" rel="noopener noreferrer"
-                                  className="text-yellow-500/60 hover:text-yellow-400 transition-colors" title="View build">
-                                  <SlidersHorizontal className="w-3.5 h-3.5" />
-                                </a>
+                                hunt.buildUrl.startsWith("data:") ? (
+                                  <button onClick={e => { e.stopPropagation(); setBuildModalUrl(hunt.buildUrl!); }}
+                                    className="text-yellow-500/60 hover:text-yellow-400 transition-colors" title="View build">
+                                    <Star className="w-3.5 h-3.5" />
+                                  </button>
+                                ) : (
+                                  <a href={hunt.buildUrl} target="_blank" rel="noopener noreferrer"
+                                    onClick={e => e.stopPropagation()}
+                                    className="text-yellow-500/60 hover:text-yellow-400 transition-colors" title="View build">
+                                    <Star className="w-3.5 h-3.5" />
+                                  </a>
+                                )
                               )}
+                              {hunt.notes && (
+                                <span title={hunt.notes} className="text-slate-400/60 cursor-default" onClick={e => e.stopPropagation()}>
+                                  <MessageSquare className="w-3.5 h-3.5" />
+                                </span>
+                              )}
+                              <span className="font-mono text-slate-200 font-medium">{formatTime(hunt.timeSeconds)}</span>
+                              {isOwnProfile && <Pencil className="w-3 h-3 text-muted-foreground/30" />}
                             </div>
                           </div>
-                          {hunt.notes && (
-                            <p className="mt-1.5 ml-11 text-xs text-muted-foreground/70 italic">{hunt.notes}</p>
-                          )}
                         </div>
                       );
                     })
@@ -327,6 +389,75 @@ export default function ProfilePage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Edit hunt dialog (own profile only) */}
+      <Dialog open={!!editHunt} onOpenChange={(o) => !o && setEditHunt(null)}>
+        <DialogContent className="bg-card border-white/10 text-slate-200 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display text-white">Edit Hunt</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Time (mm:ss)</Label>
+              <Input value={editTime} onChange={e => setEditTime(e.target.value)}
+                className="bg-background/50 border-white/10 font-mono" placeholder="e.g. 14:24" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Proof Link</Label>
+              <Input value={editVideo} onChange={e => setEditVideo(e.target.value)}
+                className="bg-background/50 border-white/10 text-sm" placeholder="https://youtube.com/..." />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Build Image</Label>
+              <div className="flex gap-2">
+                <Input value={editBuild.startsWith("data:") ? "" : editBuild}
+                  onChange={e => setEditBuild(e.target.value)}
+                  disabled={editBuild.startsWith("data:")}
+                  className="bg-background/50 border-white/10 text-sm flex-1" placeholder="URL..." />
+                <label className="cursor-pointer shrink-0">
+                  <input ref={buildFileRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => setEditBuild(ev.target?.result as string);
+                    reader.readAsDataURL(file);
+                  }} />
+                  <div className="h-9 px-3 flex items-center rounded-md border border-white/10 bg-background/50 text-xs text-muted-foreground hover:text-white transition-colors">
+                    {editBuild.startsWith("data:") ? "✓" : "Upload"}
+                  </div>
+                </label>
+              </div>
+              {editBuild.startsWith("data:") && (
+                <div className="flex items-center gap-2">
+                  <img src={editBuild} alt="Build" className="h-10 rounded border border-white/10 object-cover" />
+                  <button onClick={() => setEditBuild("")} className="text-xs text-muted-foreground hover:text-destructive">Remove</button>
+                </div>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Notes</Label>
+              <textarea value={editNotes} onChange={e => setEditNotes(e.target.value)}
+                rows={2} placeholder="e.g. used temporal mantle..."
+                className="w-full rounded-md border border-white/10 bg-background/50 px-3 py-2 text-sm text-slate-200 placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <Button onClick={handleEditSave} disabled={editMutation.isPending} className="w-full bg-primary text-background font-bold">
+              {editMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Build image modal */}
+      {buildModalUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          onClick={() => setBuildModalUrl(null)}>
+          <div className="relative max-w-2xl w-full" onClick={e => e.stopPropagation()}>
+            <img src={buildModalUrl} alt="Build screenshot" className="w-full rounded-xl border border-white/10 shadow-2xl" />
+            <button onClick={() => setBuildModalUrl(null)}
+              className="absolute top-3 right-3 bg-black/60 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/80 text-lg">✕</button>
+          </div>
+        </div>
       )}
     </div>
   );

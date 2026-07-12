@@ -808,13 +808,34 @@ export default function Dashboard() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Build Image <span className="text-muted-foreground text-xs font-normal">(optional — screenshot or Honey Hunter link)</span></Label>
-                    <Input
-                      placeholder="https://..."
-                      value={buildUrl}
-                      onChange={(e) => setBuildUrl(e.target.value)}
-                      className="bg-background/50 border-white/10 text-sm"
-                    />
+                    <Label>Build Image <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="URL or leave blank to upload"
+                        value={buildUrl.startsWith("data:") ? "" : buildUrl}
+                        onChange={(e) => setBuildUrl(e.target.value)}
+                        className="bg-background/50 border-white/10 text-sm flex-1"
+                        disabled={buildUrl.startsWith("data:")}
+                      />
+                      <label className="cursor-pointer shrink-0">
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = (ev) => setBuildUrl(ev.target?.result as string);
+                          reader.readAsDataURL(file);
+                        }} />
+                        <div className="h-9 px-3 flex items-center rounded-md border border-white/10 bg-background/50 text-xs text-muted-foreground hover:text-white hover:bg-white/10 transition-colors">
+                          {buildUrl.startsWith("data:") ? "✓ Uploaded" : "Upload"}
+                        </div>
+                      </label>
+                    </div>
+                    {buildUrl.startsWith("data:") && (
+                      <div className="flex items-center gap-2">
+                        <img src={buildUrl} alt="Build preview" className="h-12 rounded border border-white/10 object-cover" />
+                        <button onClick={() => setBuildUrl("")} className="text-xs text-muted-foreground hover:text-destructive">Remove</button>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label>Notes <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>

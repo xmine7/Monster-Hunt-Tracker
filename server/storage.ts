@@ -21,6 +21,7 @@ export interface IStorage {
   getHunt(userId: string, monsterId: string, weaponId: string, mode: string): Promise<Hunt | undefined>;
   createHunt(userId: string, hunt: InsertHunt): Promise<Hunt>;
   updateHunt(userId: string, monsterId: string, weaponId: string, mode: string, hunt: InsertHunt & { date?: Date }): Promise<Hunt>;
+  updateHuntById(userId: string, huntId: string, data: { videoUrl?: string | null; buildUrl?: string | null; notes?: string | null; timeSeconds?: number }): Promise<Hunt>;
   deleteHuntsByMode(userId: string, mode: string): Promise<void>;
   deleteAllHunts(userId: string): Promise<void>;
   deleteUser(userId: string): Promise<void>;
@@ -85,10 +86,21 @@ export class DatabaseStorage implements IStorage {
         attempts: hunts.attempts,
         mode: hunts.mode,
         videoUrl: hunts.videoUrl,
+        buildUrl: hunts.buildUrl,
+        notes: hunts.notes,
       })
       .from(hunts)
       .innerJoin(users, eq(hunts.userId, users.id));
     return result as HuntWithUser[];
+  }
+
+  async updateHuntById(userId: string, huntId: string, data: { videoUrl?: string | null; buildUrl?: string | null; notes?: string | null; timeSeconds?: number }): Promise<Hunt> {
+    const [hunt] = await db
+      .update(hunts)
+      .set(data)
+      .where(and(eq(hunts.userId, userId), eq(hunts.id, huntId)))
+      .returning();
+    return hunt;
   }
 
   async getAllHunts(userId: string): Promise<Hunt[]> {
