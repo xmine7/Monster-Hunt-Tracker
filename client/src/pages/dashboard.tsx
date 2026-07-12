@@ -454,12 +454,12 @@ export default function Dashboard() {
     <div className="min-h-screen p-4 md:p-8 space-y-8 font-sans text-slate-200">
       {/* Header */}
       <header className="bg-card/50 backdrop-blur-md rounded-xl border border-white/5 overflow-hidden">
-        {/* Title row — full width */}
-        <div className="px-6 pt-6 pb-4 border-b border-white/10">
+        {/* Title row — full width, centered */}
+        <div className="px-6 pt-6 pb-4 border-b border-white/10 text-center">
           <h1 className="text-4xl font-display font-bold text-white tracking-wide uppercase leading-tight">
             Hunter's <span className="text-primary">Log</span>
           </h1>
-          <p className="text-muted-foreground flex items-center gap-2 mt-1 text-sm">
+          <p className="text-muted-foreground flex items-center justify-center gap-2 mt-1 text-sm">
             <Trophy className="w-3.5 h-3.5" />
             World Speedrun Tracker
           </p>
