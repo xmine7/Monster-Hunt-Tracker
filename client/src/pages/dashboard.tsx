@@ -386,10 +386,9 @@ export default function Dashboard() {
     // Filter out cases where best and worst are the same set (e.g. only 1 active weapon or all have same points)
     // But keep them if they are distinct groups
     
-    // Calculate Max Possible Points based on actual hunts logged
-    // Each hunt can earn max 3 points (gold) + one +5 global best bonus per monster (5 monsters × 5 = 25 max)
+    // Max possible: all 5 monsters × 14 weapons at gold (3pts) + 5 global best bonuses (5pts each) = 235
     const totalHuntsLogged = hunts.length;
-    const maxPossiblePoints = (totalHuntsLogged * 3) + (MONSTERS.length * 5);
+    const maxPossiblePoints = (MONSTERS.length * WEAPONS.length * 3) + (MONSTERS.length * 5);
     
     const totalAttempts = hunts.reduce((acc: number, hunt: HuntRecord) => acc + (hunt.attempts || 1), 0);
 
