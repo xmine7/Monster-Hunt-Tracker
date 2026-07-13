@@ -387,10 +387,10 @@ export default function Dashboard() {
     // But keep them if they are distinct groups
     
     // Calculate Max Possible Points based on actual hunts logged
-    // Each hunt can earn max 3 points (gold) + 1 star bonus per unique monster
+    // Each hunt can earn max 3 points (gold) + 5 bonus for each PB hunt
     const totalHuntsLogged = hunts.length;
-    const uniqueMonstersHunted = new Set(hunts.map((h: HuntRecord) => h.monsterId)).size;
-    const maxPossiblePoints = (totalHuntsLogged * 3) + uniqueMonstersHunted;
+    const pbHunts = hunts.filter((h: HuntRecord) => h.isPb).length;
+    const maxPossiblePoints = (totalHuntsLogged * 3) + (pbHunts * 5);
     
     const totalAttempts = hunts.reduce((acc: number, hunt: HuntRecord) => acc + (hunt.attempts || 1), 0);
 
