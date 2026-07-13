@@ -64,7 +64,7 @@ export function getPoints(rank: Rank, isPb: boolean): number {
     case "gold": points = 3; break;
     case "silver": points = 2; break;
     case "bronze": points = 1; break;
-    case "skull": points = -1; break;
+    case "skull": points = -3; break;
   }
   if (isPb) points += 5;
   return points;

@@ -1239,7 +1239,7 @@ export default function Dashboard() {
               </div>
               <div className="flex justify-between items-center p-2 rounded bg-white/5">
                 <span className="flex items-center gap-2"><Skull className="w-4 h-4 text-gray-500" /> &gt; 20:00</span>
-                <span className="font-bold text-destructive flex items-center gap-1">-1 <Diamond className="w-3 h-3" /></span>
+                <span className="font-bold text-destructive flex items-center gap-1">-3 <Diamond className="w-3 h-3" /></span>
               </div>
               <div className="flex justify-between items-center p-2 rounded bg-accent/10 border border-accent/20">
                 <span className="flex items-center gap-2 text-accent"><Star className="w-4 h-4" /> Personal Best</span>
