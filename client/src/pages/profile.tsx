@@ -52,19 +52,27 @@ function ModeCard({ mode, hunts }: { mode: string; hunts: ProfileHunt[] }) {
       <CardHeader className="pb-2 pt-4 px-4">
         <CardTitle className="text-xs font-display uppercase tracking-widest text-primary text-center">{mode}</CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4 space-y-2">
+      <CardContent className="px-3 pb-3 space-y-1.5">
         {MONSTERS.map(monster => {
           const best = bestPerMonster[monster.id];
           const weapon = best ? WEAPONS.find(w => w.id === best.weaponId) : null;
           const rank = best ? getRank(best.timeSeconds) : null;
           return (
-            <div key={monster.id} className="flex items-center justify-center gap-2 text-xs py-0.5">
-              <monster.icon className={cn("w-3.5 h-3.5 shrink-0", best ? monster.color : "text-muted-foreground/30")} />
+            <div key={monster.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/5">
+              <monster.icon className={cn("w-4 h-4 shrink-0", best ? monster.color : "text-muted-foreground/20")} />
+              <div className="flex-1 min-w-0">
+                <div className={cn("text-xs font-medium leading-tight truncate", best ? "text-slate-200" : "text-muted-foreground/30")}>
+                  {monster.name}
+                </div>
+                {best && weapon && (
+                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+                    <img src={weapon.sprite} alt={weapon.name} className="w-3 h-3 object-contain" />
+                    {weapon.name}
+                  </div>
+                )}
+              </div>
               {best ? (
-                <>
-                  <span className="font-mono text-slate-200 font-medium">{formatTime(best.timeSeconds)}</span>
-                  {weapon && <img src={weapon.sprite} alt={weapon.name} title={weapon.name} className="w-3.5 h-3.5 object-contain shrink-0" />}
-                  {rank && <RankIcon rank={rank} className="w-3.5 h-3.5 shrink-0" />}
+                <div className="flex items-center gap-2 shrink-0">
                   {best.videoUrl && (
                     <a href={best.videoUrl} target="_blank" rel="noopener noreferrer"
                       className="text-primary/50 hover:text-primary transition-colors"
@@ -72,9 +80,18 @@ function ModeCard({ mode, hunts }: { mode: string; hunts: ProfileHunt[] }) {
                       <Link className="w-3 h-3" />
                     </a>
                   )}
-                </>
+                  <div className="text-right">
+                    <div className="font-mono font-bold text-primary text-sm">{formatTime(best.timeSeconds)}</div>
+                    {rank && <div className={cn("text-[9px] font-bold uppercase tracking-wide",
+                      rank === "gold" && "text-yellow-400",
+                      rank === "silver" && "text-slate-300",
+                      rank === "bronze" && "text-amber-700",
+                      rank === "skull" && "text-gray-500"
+                    )}>{rank}</div>}
+                  </div>
+                </div>
               ) : (
-                <span className="text-muted-foreground/30">—</span>
+                <span className="text-muted-foreground/20 font-mono text-sm shrink-0">—</span>
               )}
             </div>
           );

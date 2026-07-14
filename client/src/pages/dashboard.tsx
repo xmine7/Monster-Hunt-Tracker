@@ -1016,8 +1016,38 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Right Column: Random Challenge & Scoring */}
+        {/* Right Column: Best Times, Random Challenge & Scoring */}
         <div className="space-y-6">
+          {/* Best Times Card */}
+          <Card className="bg-card/40 border-white/5 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="font-display text-lg text-white flex items-center justify-center gap-2">
+                <Trophy className="w-5 h-5 text-accent" /> Best Times
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              {MONSTERS.map((monster) => {
+                const best = stats.bestTimePerMonster[monster.id];
+                const bestWeapon = best ? WEAPONS.find(w => w.id === best.weaponId) : null;
+                const rank = best ? getRank(best.timeSeconds) : null;
+                return (
+                  <div key={monster.id} className="flex items-center justify-center gap-2 text-sm py-1.5 border-b border-white/5 last:border-0">
+                    <monster.icon className={cn("w-4 h-4 shrink-0", best ? monster.color : "text-muted-foreground/30")} />
+                    {best ? (
+                      <>
+                        <span className="font-mono text-slate-200">{formatTime(best.timeSeconds)}</span>
+                        {bestWeapon && <img src={bestWeapon.sprite} alt={bestWeapon.name} title={bestWeapon.name} className="w-4 h-4 object-contain shrink-0" />}
+                        {rank && <RankIcon rank={rank} className="w-4 h-4 shrink-0" />}
+                      </>
+                    ) : (
+                      <span className="font-mono text-muted-foreground/40 italic text-xs">tbd</span>
+                    )}
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+
           {/* Random Challenge Card */}
           <Card className="bg-gradient-to-br from-card/60 to-purple-500/10 border-purple-500/20">
             <CardHeader className="pb-2">
@@ -1188,35 +1218,6 @@ export default function Dashboard() {
                   </div>
                 </DialogContent>
               </Dialog>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card/40 border-white/5 backdrop-blur-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="font-display text-lg text-white flex items-center justify-center gap-2">
-                <Trophy className="w-5 h-5 text-accent" /> Best Times
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1">
-              {MONSTERS.map((monster) => {
-                const best = stats.bestTimePerMonster[monster.id];
-                const bestWeapon = best ? WEAPONS.find(w => w.id === best.weaponId) : null;
-                const rank = best ? getRank(best.timeSeconds) : null;
-                return (
-                  <div key={monster.id} className="flex items-center justify-center gap-2 text-sm py-1.5 border-b border-white/5 last:border-0">
-                    <monster.icon className={cn("w-4 h-4 shrink-0", best ? monster.color : "text-muted-foreground/30")} />
-                    {best ? (
-                      <>
-                        <span className="font-mono text-slate-200">{formatTime(best.timeSeconds)}</span>
-                        {bestWeapon && <img src={bestWeapon.sprite} alt={bestWeapon.name} title={bestWeapon.name} className="w-4 h-4 object-contain shrink-0" />}
-                        {rank && <RankIcon rank={rank} className="w-4 h-4 shrink-0" />}
-                      </>
-                    ) : (
-                      <span className="font-mono text-muted-foreground/40 italic text-xs">tbd</span>
-                    )}
-                  </div>
-                );
-              })}
             </CardContent>
           </Card>
 
