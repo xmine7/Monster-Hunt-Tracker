@@ -1,4 +1,4 @@
-import { Skull, Medal, Star, Diamond, Zap, Flame, Snowflake, Circle, Sparkles, Waves, Bomb, Dumbbell } from "lucide-react";
+import { Skull, Medal, Star, Diamond, Zap, Flame, Snowflake, Circle } from "lucide-react";
 
 export type Rank = "gold" | "silver" | "bronze" | "skull";
 
@@ -33,10 +33,6 @@ export const MONSTERS: Monster[] = [
   { id: "kulve",     name: "Kulve Taroth",           icon: Diamond,   color: "text-cyan-400" },
   { id: "teostra",   name: "Tempered Teostra",       icon: Star,      color: "text-orange-400" },
   { id: "nergigante",name: "Tempered Nergigante",    icon: Circle,    color: "text-gray-400" },
-  { id: "safi",      name: "Safi'jiiva",             icon: Sparkles,  color: "text-rose-400" },
-  { id: "brachydios",name: "Raging Brachydios",      icon: Bomb,      color: "text-lime-400" },
-  { id: "rajang",    name: "Furious Rajang",         icon: Dumbbell,  color: "text-yellow-600" },
-  { id: "namielle",  name: "Arch Tempered Namielle", icon: Waves,     color: "text-violet-400" },
 ];
 
 export const WEAPONS: Weapon[] = [
