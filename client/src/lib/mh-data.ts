@@ -32,6 +32,7 @@ export const MONSTERS: Monster[] = [
   { id: "alatreon",  name: "Alatreon",               icon: Zap,       color: "text-yellow-400" },
   { id: "kulve",     name: "Kulve Taroth",           icon: Diamond,   color: "text-cyan-400" },
   { id: "nergigante",name: "Tempered Nergigante",    icon: Circle,    color: "text-gray-400" },
+  { id: "teostra",   name: "Tempered Teostra",       icon: Star,      color: "text-orange-400" },
 ];
 
 export const WEAPONS: Weapon[] = [
